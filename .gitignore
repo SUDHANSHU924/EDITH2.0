@@ -1,16 +1,103 @@
-.env.local
-.env.local.local
+# Dependencies
 node_modules/
-.next/
-out/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+env/
+venv/
+ENV/
 build/
+develop-eggs/
 dist/
-*.log
-.DS_Store
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.env
-.env.*.local
+.DS_Store
+.AppleDouble
+.LSOverride
+*.sublime-workspace
+
+# Build
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Frontend
+node_modules/
+.expo/
+.expo-shared/
+dist/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Cache
+.cache/
+.parcel-cache
+.next
+out
+
+# Backend
+venv/
+.venv
+env/
+ENV/
+env.bak/
+venv.bak/
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+local_settings.py
+
+# Data
+*.db
+*.sqlite
+*.sqlite3
+chroma-data/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Testing
+.nyc_output
+coverage
+
+# Production
+.vercel
+
+# Docker
+docker-compose.override.yml

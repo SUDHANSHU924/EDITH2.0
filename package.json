@@ -1,29 +1,27 @@
 {
   "name": "edith",
-  "version": "1.0.0",
-  "description": "E.D.I.T.H - Exceptional Digital Intelligence for Task Handling",
+  "version": "2.0.0",
+  "description": "E.D.I.T.H — Autonomous Intelligence System (Next.js 15 + FastAPI)",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "2",
-    "ai": "3",
-    "class-variance-authority": "^0.7.1",
-    "framer-motion": "^12.38.0",
-    "lucide-react": "latest",
-    "motion": "^10.18.0",
-    "next": "15",
-    "react": "19",
-    "react-dom": "19",
-    "tailwindcss": "3",
-    "typescript": "5",
-    "zustand": "4"
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && uvicorn main:app --reload --port 8000",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "docker": "docker-compose up -d",
+    "install:all": "cd frontend && npm install"
   },
   "devDependencies": {
-    "@types/node": "20",
-    "@types/react": "18"
-  }
+    "concurrently": "^9.0.0"
+  },
+  "keywords": [
+    "ai",
+    "autonomous",
+    "intelligence",
+    "nextjs",
+    "fastapi",
+    "langgraph"
+  ],
+  "author": "SUDHANSHU924",
+  "license": "MIT"
 }
