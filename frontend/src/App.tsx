@@ -127,16 +127,11 @@ export default function App() {
       setSecurityMode(false);
       setActiveDepartment('core');
     }
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        type: 'edith',
-        content:
-          '⚠️ Commander Override Protocol activated. All autonomous operations halted. Awaiting explicit directive.',
-        departmentColor: '#FF2A4B',
-      },
-    ]);
+    useChatStore.getState().addMessage({
+      role: 'assistant',
+      content: '⚠️ Commander Override Protocol activated. All autonomous operations halted. Awaiting explicit directive.',
+      timestamp: new Date().toISOString(),
+    });
   };
 
   return (

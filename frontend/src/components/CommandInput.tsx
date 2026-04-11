@@ -199,11 +199,16 @@ export function CommandInput({
                 onBlur={() => setIsFocused(false)}
                 onKeyDown={handleKeyDown}
                 placeholder={`Issue directive to ${activeDepartment.toUpperCase()} module...`}
-                className="w-full bg-transparent text-white resize-none outline-none placeholder:text-white/20 min-h-[44px] max-h-[140px] py-2.5"
+                className="w-full bg-transparent resize-none outline-none min-h-[44px] max-h-[140px] py-2.5"
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '14px',
                   lineHeight: '1.6',
+                  color: '#FFFFFF',
+                  caretColor: '#00F0FF',
+                  background: 'transparent',
+                  outline: 'none',
+                  width: '100%',
                 }}
                 rows={1}
               />

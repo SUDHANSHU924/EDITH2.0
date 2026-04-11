@@ -20,3 +20,15 @@ html, body {
   width: 100vw;
   overflow: hidden;
 }
+
+/* Ensure input and textarea visibility */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+  opacity: 1 !important;
+}
+
+input, textarea {
+  color: #FFFFFF !important;
+  caret-color: #00F0FF !important;
+}

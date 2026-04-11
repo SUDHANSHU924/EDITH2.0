@@ -1,0 +1,1 @@
+sed -i 's/className="w-full bg-transparent text-white resize-none outline-none placeholder:text-white\/20 min-h-\[40px\] max-h-\[140px\]"/className="w-full bg-transparent text-white resize-none outline-none placeholder:text-white\/20 min-h-\[44px\] max-h-\[140px\] py-2.5"/g' /workspaces/EDITH2.0/frontend/src/components/CommandInput.tsx
