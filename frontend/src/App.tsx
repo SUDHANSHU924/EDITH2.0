@@ -1,7 +1,11 @@
+"use client";
+
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertOctagon, ChevronUp, ChevronDown } from 'lucide-react';
 import { BackgroundGrid } from './components/BackgroundGrid';
+import { useEdith } from './hooks/useEdith';
+import { useChatStore } from './store/chatStore';
 import { OrbitSidebar } from './components/OrbitSidebar';
 import { CommandInput } from './components/CommandInput';
 import { MessageBubble } from './components/MessageBubble';
@@ -17,14 +21,14 @@ import {
 
 interface Message {
   id: number;
-  type: 'commander' | 'aura';
+  type: 'commander' | 'edith';
   content: string;
   isThinking?: boolean;
   departmentColor?: string;
 }
 
 // Master prompt activation message
-const BOOT_MESSAGE = `AURA 2.0 — Online.
+const BOOT_MESSAGE = `EDITH 2.0 — Online.
 Commander recognized. Ready for directives.
 Capabilities active: Code · Search · Files · Analysis · Security · Automation
 
@@ -34,20 +38,14 @@ How can I serve you today?`;
 
 const AUTONOMY_STAGES = [
   { stage: 1, label: 'DIRECTED', desc: 'Commander specifies every task explicitly' },
-  { stage: 2, label: 'DELEGATED', desc: 'Commander sets objectives; AURA executes' },
-  { stage: 3, label: 'PROACTIVE', desc: 'AURA anticipates and suggests actions' },
-  { stage: 4, label: 'MANAGED', desc: 'AURA handles routine, escalates decisions' },
+  { stage: 2, label: 'DELEGATED', desc: 'Commander sets objectives; EDITH executes' },
+  { stage: 3, label: 'PROACTIVE', desc: 'EDITH anticipates and suggests actions' },
+  { stage: 4, label: 'MANAGED', desc: 'EDITH handles routine, escalates decisions' },
 ];
 
 export default function App() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      type: 'aura',
-      content: BOOT_MESSAGE,
-      departmentColor: '#00F0FF',
-    },
-  ]);
+  const chatMessages = useChatStore((state) => state.messages);
+  const { sendMessage, isThinking } = useEdith();
   const [securityMode, setSecurityMode] = useState(false);
   const [showSecurityOverlay, setShowSecurityOverlay] = useState(false);
   const [activeDepartment, setActiveDepartment] = useState<DepartmentId>('core');
@@ -62,9 +60,23 @@ export default function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+
+  const displayMessages = chatMessages.length === 0 ? [{
+    id: 1,
+    type: 'edith' as 'commander'|'edith',
+    content: BOOT_MESSAGE,
+    departmentColor: '#00F0FF',
+  }] : chatMessages.map((m) => ({
+    id: m.id || Date.now(),
+    type: (m.role === 'user' ? 'commander' : 'edith') as 'commander' | 'edith',
+    content: m.content || '',
+    isThinking: m.isStreaming,
+    departmentColor: currentDept.color,
+  }));
+
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [displayMessages]);
 
   // Close stage menu on outside click
   useEffect(() => {
@@ -76,15 +88,6 @@ export default function App() {
   const handleDepartmentChange = (deptId: DepartmentId) => {
     if (deptId === activeDepartment) return;
     setActiveDepartment(deptId);
-
-    const deptInfo = DEPARTMENTS.find((d) => d.id === deptId)!;
-    const switchMsg: Message = {
-      id: Date.now(),
-      type: 'aura',
-      content: DEPARTMENT_WELCOMES[deptId],
-      departmentColor: deptInfo.color,
-    };
-    setMessages((prev) => [...prev, switchMsg]);
   };
 
   const handleSendMessage = (content: string) => {
@@ -93,53 +96,16 @@ export default function App() {
       return;
     }
     if (content.toLowerCase() === 'shutdown') {
-      setMessages([]);
-      setTimeout(() => {
-        setMessages([
-          {
-            id: Date.now(),
-            type: 'aura',
-            content: '// STANDING BY — Commander Override Received.',
-            departmentColor: '#00F0FF',
-          },
-        ]);
-      }, 500);
+      useChatStore.getState().clearMessages();
+      useChatStore.getState().addMessage({
+         role: 'assistant',
+         content: '// STANDING BY — Commander Override Received.',
+         timestamp: new Date().toISOString()
+      });
       return;
     }
 
-    const cmdMsg: Message = {
-      id: Date.now(),
-      type: 'commander',
-      content,
-      departmentColor: currentDept.color,
-    };
-    setMessages((prev) => [...prev, cmdMsg]);
-
-    const thinkMsg: Message = {
-      id: Date.now() + 1,
-      type: 'aura',
-      content: '',
-      isThinking: true,
-      departmentColor: currentDept.color,
-    };
-    setMessages((prev) => [...prev, thinkMsg]);
-
-    const delay = 2000 + Math.random() * 1400;
-    setTimeout(() => {
-      setMessages((prev) => {
-        const filtered = prev.filter((m) => !m.isThinking);
-        const responses = AI_RESPONSES[activeDepartment];
-        return [
-          ...filtered,
-          {
-            id: Date.now() + 2,
-            type: 'aura',
-            content: responses[Math.floor(Math.random() * responses.length)],
-            departmentColor: currentDept.color,
-          },
-        ];
-      });
-    }, delay);
+    sendMessage(content);
   };
 
   const handleSecurityToggle = () => {
@@ -165,7 +131,7 @@ export default function App() {
       ...prev,
       {
         id: Date.now(),
-        type: 'aura',
+        type: 'edith',
         content:
           '⚠️ Commander Override Protocol activated. All autonomous operations halted. Awaiting explicit directive.',
         departmentColor: '#FF2A4B',
@@ -279,7 +245,7 @@ export default function App() {
                 className="text-white"
                 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '15px' }}
               >
-                AURA 2.0{' '}
+                EDITH 2.0{' '}
                 <span style={{ color: accentColor }}>// {currentDept.label}</span>
               </div>
             </div>
@@ -506,7 +472,7 @@ export default function App() {
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-7 py-6 pb-44 horizon-scroll" style={{ minHeight: 0 }}>
           <div className="max-w-3xl mx-auto flex flex-col gap-6">
-            {messages.map((message) => (
+            {displayMessages.map((message) => (
               <MessageBubble
                 key={message.id}
                 type={message.type}

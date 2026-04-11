@@ -1,10 +1,12 @@
+"use client";
+
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Lock, Copy, Check, Terminal } from 'lucide-react';
 import { ThinkingVisualization } from './ThinkingVisualization';
 
 interface MessageBubbleProps {
-  type: 'commander' | 'aura';
+  type: 'commander' | 'edith';
   content: string;
   isThinking?: boolean;
   securityMode?: boolean;
@@ -43,9 +45,9 @@ function parseContent(raw: string): ContentPart[] {
 }
 
 function pushTextParts(text: string, parts: ContentPart[]) {
-  if (text.includes('[AURA PLANNING MODE]')) {
+  if (text.includes('[EDITH PLANNING MODE]')) {
     parts.push({ type: 'planmode', content: text });
-  } else if (text.match(/^[✅🔄⏳⚠️]/m) || text.includes('[AURA TASK LOG]')) {
+  } else if (text.match(/^[✅🔄⏳⚠️]/m) || text.includes('[EDITH TASK LOG]')) {
     parts.push({ type: 'tasklog', content: text });
   } else {
     parts.push({ type: 'text', content: text });
@@ -197,11 +199,11 @@ function PlanModeBlock({ content, color }: { content: string; color: string }) {
             letterSpacing: '0.08em',
           }}
         >
-          AURA PLANNING MODE
+          EDITH PLANNING MODE
         </span>
       </div>
       <div className="px-4 py-3">
-        <TextContent content={content.replace('[AURA PLANNING MODE]', '').trim()} color={color} />
+        <TextContent content={content.replace('[EDITH PLANNING MODE]', '').trim()} color={color} />
       </div>
     </div>
   );
@@ -211,7 +213,7 @@ function PlanModeBlock({ content, color }: { content: string; color: string }) {
 
 function TaskLogBlock({ content, color }: { content: string; color: string }) {
   const lines = content
-    .replace('[AURA TASK LOG]', '')
+    .replace('[EDITH TASK LOG]', '')
     .split('\n')
     .filter((l) => l.trim());
 
@@ -243,7 +245,7 @@ function TaskLogBlock({ content, color }: { content: string; color: string }) {
             letterSpacing: '0.08em',
           }}
         >
-          AURA TASK LOG
+          EDITH TASK LOG
         </span>
       </div>
       <div className="px-4 py-3 space-y-1.5">
@@ -506,7 +508,7 @@ export function MessageBubble({
           </div>
         )}
 
-        {/* ── AURA Message ── */}
+        {/* ── EDITH Message ── */}
         {!isCommander && (
           <div className="w-full">
             <motion.div className="relative pl-4">
@@ -571,13 +573,13 @@ export function MessageBubble({
               </div>
             </motion.div>
 
-            {/* AURA label */}
+            {/* EDITH label */}
             <div
               className="mt-1.5 ml-5 flex items-center gap-2"
               style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px' }}
             >
               <span style={{ color: beamColor + '70', letterSpacing: '0.06em' }}>
-                AURA
+                EDITH
               </span>
               <span style={{ color: 'rgba(255,255,255,0.12)' }}>·</span>
               <span style={{ color: securityMode ? '#FF2A4B70' : 'rgba(255,255,255,0.2)', letterSpacing: '0.04em' }}>

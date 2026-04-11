@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DEPARTMENTS, type DepartmentId } from '../departments';
@@ -83,7 +85,7 @@ export function OrbitSidebar({
                   className="text-white text-sm"
                   style={{ fontFamily: 'JetBrains Mono, monospace' }}
                 >
-                  AURA 2.0
+                  EDITH 2.0
                 </div>
                 <div
                   className="text-xs mt-0.5"

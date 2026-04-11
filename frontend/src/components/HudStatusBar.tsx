@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { DEPARTMENTS, type DepartmentId } from '../departments';
@@ -44,7 +46,7 @@ export function HudStatusBar({
         backdropFilter: 'blur(12px)',
       }}
     >
-      {/* Left: AURA identity + online indicator */}
+      {/* Left: EDITH identity + online indicator */}
       <div className="flex items-center gap-2.5 flex-shrink-0">
         <motion.div
           className="w-1.5 h-1.5 rounded-full flex-shrink-0"
@@ -60,7 +62,7 @@ export function HudStatusBar({
             letterSpacing: '0.08em',
           }}
         >
-          AURA 2.0
+          EDITH 2.0
         </span>
         <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
         <span

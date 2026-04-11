@@ -23,7 +23,7 @@ export interface Department {
 export const DEPARTMENTS: Department[] = [
   {
     id: 'core',
-    label: 'AURA CORE',
+    label: 'EDITH CORE',
     shortLabel: 'CORE',
     subtitle: 'Conversational AI',
     color: '#00F0FF',
@@ -133,7 +133,7 @@ export const DEPARTMENTS: Department[] = [
 ];
 
 export const DEPARTMENT_WELCOMES: Record<DepartmentId, string> = {
-  core: 'AURA CORE active. Conversational intelligence fully engaged. Multi-turn context retention online. Natural language understanding at 99.4% fidelity. How may I serve, Commander?',
+  core: 'EDITH CORE active. Conversational intelligence fully engaged. Multi-turn context retention online. Natural language understanding at 99.4% fidelity. How may I serve, Commander?',
   agent: 'AGENT HUB engaged. Autonomous planning engine initialized. Tree-of-Thought reasoning active. ReAct loop standing by. Ready to decompose and execute any complex objective.',
   code: 'CODE FORGE online. Full-stack engineering suite loaded. Python 3.11, TypeScript, Rust, Go, and 15+ languages ready. Security code review active. What shall we build?',
   files: 'FILE VAULT open. Document engineering suite loaded. 12 file format templates on standby — source code, reports, configs, Dockerfiles. What shall I create?',
@@ -206,7 +206,7 @@ export const AI_RESPONSES: Record<DepartmentId, string[]> = {
     'Chart data extracted. Bar chart with 8 categories read successfully. Values: [12, 34, 28, 45, 19, 52, 38, 41]. Trend: upward trajectory Q3→Q4. Data exported as JSON and CSV.',
   ],
   voice: [
-    'Voice command processed. Speech-to-text confidence: 98.7%. Intent classification: Task execution. TTS response queued in AURA-Neural-v2 voice. Estimated audio: 12 seconds. Noise filter: active.',
+    'Voice command processed. Speech-to-text confidence: 98.7%. Intent classification: Task execution. TTS response queued in EDITH-Neural-v2 voice. Estimated audio: 12 seconds. Noise filter: active.',
     'Wake-word calibration complete. Sensitivity: 0.85 (recommended). False positive rate: 0.003/hr. Background noise profile updated. Multilingual mode: EN/ES/FR/DE/JP loaded.',
     'Voice profile updated. Noise cancellation tuned for current acoustic environment. TTS parameters: speed 1.05x, pitch 0.98x, accent EN-US. Response naturalness score: 94%. Barge-in enabled.',
     'Bidirectional voice dialog session started. Turn-taking model active. Latency: 340ms end-to-end. Multilingual detection: ON. Push-to-talk fallback available via spacebar.',

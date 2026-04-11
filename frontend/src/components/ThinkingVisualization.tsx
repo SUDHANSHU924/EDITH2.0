@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, AnimatePresence } from 'motion/react';
 import { useEffect, useState } from 'react';
 
@@ -136,7 +138,7 @@ export function ThinkingVisualization({ color = '#00F0FF' }: ThinkingVisualizati
               letterSpacing: '0.08em',
             }}
           >
-            AURA PLANNING MODE
+            EDITH PLANNING MODE
           </span>
         </div>
 

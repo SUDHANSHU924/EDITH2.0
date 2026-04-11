@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Sparkles, Send, ChevronUp, ChevronDown } from 'lucide-react';
@@ -197,7 +199,7 @@ export function CommandInput({
                 onBlur={() => setIsFocused(false)}
                 onKeyDown={handleKeyDown}
                 placeholder={`Issue directive to ${activeDepartment.toUpperCase()} module...`}
-                className="w-full bg-transparent text-white resize-none outline-none placeholder:text-white/20 min-h-[40px] max-h-[140px]"
+                className="w-full bg-transparent text-white resize-none outline-none placeholder:text-white/20 min-h-[44px] max-h-[140px] py-2.5"
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '14px',
