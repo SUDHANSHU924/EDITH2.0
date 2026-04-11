@@ -1,11 +1,24 @@
+# EDITH - Exceptional Digital Intelligence for Task Handling
 
-  # Design Best UI
+A comprehensive AI assistant framework with 15 specialized systems for conversational intelligence, code generation, security analysis, and satellite intelligence.
 
-  This is a code bundle for Design Best UI. The original project is available at https://www.figma.com/design/zjCucYPkuqkBvIthGSRoZf/Design-Best-UI.
+## Quick Start
 
-  ## Running the code
+```bash
+cp .env.local.example .env.local
+# Fill in your API keys
+npm install
+npm run dev
+```
 
-  Run `npm i` to install the dependencies.
+Visit `http://localhost:3000` to start.
 
-  Run `npm run dev` to start the development server.
-  
+## Architecture
+
+- **15 Systems**: Modular AI capabilities from conversation to satellite tracking
+- **Type-Safe**: Full TypeScript with strict mode
+- **Streaming**: Real-time response streaming from AI models
+- **Secure**: AES-256 encryption, audit logs, rate limiting
+- **Extensible**: Clear module boundaries for adding new systems
+
+See `/systems/` for module documentation.
