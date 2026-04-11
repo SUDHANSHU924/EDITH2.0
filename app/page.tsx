@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-edith-darker flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen w-screen bg-void edith-grid-bg flex flex-col items-center justify-center relative overflow-hidden">
       {/* Animated background grid */}
       <div className="absolute inset-0 opacity-20">
         <div

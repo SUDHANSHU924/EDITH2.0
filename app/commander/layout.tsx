@@ -1,32 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Sidebar } from '@/components/sidebar/Sidebar';
+import { useState } from 'react';
+import { TopBar } from '@/components/chat/TopBar';
+import { Periphery } from '@/components/sidebar/Periphery';
 
-export default function CommanderLayout({
-  children,
-}: {
+interface CommanderLayoutProps {
   children: React.ReactNode;
-}) {
-  const [activeSystem, setActiveSystem] = useState('commander');
-  const [mounted, setMounted] = useState(false);
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
+export default function CommanderLayout({ children }: CommanderLayoutProps) {
+  const [activeModule, setActiveModule] = useState(1);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <Sidebar activeItem={activeSystem} onItemClick={setActiveSystem} />
+    <div className="w-screen h-screen flex flex-col bg-void overflow-hidden">
+      {/* TOP BAR */}
+      <TopBar activeModule={activeModule} onModuleChange={setActiveModule} />
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {children}
+      {/* THREE-PANEL LAYOUT */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* ORBIT SIDEBAR - Will be added by wrapper */}
+
+        {/* HORIZON - Main Chat Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {children}
+        </div>
+
+        {/* PERIPHERY - Right Panel */}
+        <Periphery
+          contextTurns={12}
+          tokensUsed={4291}
+          langDetect="EN-US"
+          confidence="99.4%"
+          cpuUsage={32}
+          memUsage={61}
+          threatLevel="GREEN"
+        />
       </div>
     </div>
   );

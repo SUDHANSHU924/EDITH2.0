@@ -1,78 +1,66 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 
 interface MessageBubbleProps {
-  message: string;
-  sender: 'user' | 'ai';
-  isThinking?: boolean;
-  accentColor?: string;
-  timestamp?: string;
+  message: {
+    id: string | number;
+    content: string;
+    role: 'user' | 'assistant';
+    timestamp?: string;
+  };
 }
 
-export function MessageBubble({
-  message,
-  sender,
-  isThinking = false,
-  accentColor = '#00F0FF',
-  timestamp,
-}: MessageBubbleProps) {
-  const [isCodeBlock, setIsCodeBlock] = useState(message.includes('```'));
+export function MessageBubble({ message }: MessageBubbleProps) {
+  const isUser = message.role === 'user';
 
-  const bgColor = sender === 'user' ? 'bg-cyan-500/10' : 'bg-blue-500/5';
-  const borderColor = sender === 'user' ? 'border-cyan-500/30' : 'border-muted';
-  const textColor = sender === 'user' ? 'text-foreground' : 'text-foreground';
+  if (isUser) {
+    // COMMANDER MESSAGE STYLE
+    return (
+      <div className="flex items-end gap-3 justify-end max-w-md">
+        {/* Avatar badge */}
+        <div className="flex flex-col items-end gap-1">
+          <div className="px-4 py-3 rounded-lg border border-text-secondary bg-transparent backdrop-blur-0">
+            <p className="text-sm text-white leading-relaxed whitespace-pre-wrap">
+              {message.content}
+            </p>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-9px font-mono text-text-tertiary">
+              {message.timestamp || new Date().toLocaleTimeString('en-US', { timeStyle: 'medium' })}
+            </span>
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan/20 to-violet/20 border border-cyan/30 flex items-center justify-center flex-shrink-0">
+              <span className="text-10px font-mono font-bold text-cyan">CMD</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  // EDITH MESSAGE STYLE
   return (
     <motion.div
-      className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
+      className="flex items-start gap-3 max-w-2xl"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div
-        className={`
-          max-w-[70%] px-4 py-3 rounded-lg
-          border backdrop-blur-sm
-          ${bgColor} ${borderColor} ${textColor}
-          ${isThinking ? 'animate-pulse' : ''}
-        `}
-        style={{
-          borderLeftColor: sender === 'user' ? undefined : accentColor,
-          borderLeftWidth: sender === 'user' ? 0 : 3,
-        }}
-      >
-        {/* Sender label */}
-        {sender === 'ai' && (
-          <div className="text-xs font-mono font-semibold mb-2" style={{ color: accentColor }}>
-            E.D.I.T.H
-          </div>
-        )}
+      {/* Avatar badge */}
+      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan/20 to-violet/20 border border-cyan/40 flex items-center justify-center flex-shrink-0 mt-1">
+        <span className="text-10px font-mono font-bold text-cyan">E2.0</span>
+      </div>
 
-        {/* Message content */}
-        <div className="text-sm leading-relaxed whitespace-pre-wrap break-words font-sans">
-          {isThinking ? (
-            <span className="inline-flex items-center gap-1">
-              <span>Processing</span>
-              <motion.span
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                ●
-              </motion.span>
-            </span>
-          ) : (
-            message
-          )}
+      {/* Message content with cyan beam */}
+      <div className="flex flex-col gap-1 flex-1">
+        <div className="cyan-beam">
+          <div className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
+            {message.content}
+          </div>
         </div>
-
-        {/* Timestamp */}
-        {timestamp && (
-          <div className="text-xs text-muted-foreground mt-2 font-mono">
-            {timestamp}
-          </div>
-        )}
+        <span className="text-9px font-mono text-text-tertiary">
+          {message.timestamp || new Date().toLocaleTimeString('en-US', { timeStyle: 'medium' })}
+        </span>
       </div>
     </motion.div>
   );

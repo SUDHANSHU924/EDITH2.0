@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
 import { Send, Mic, Paperclip } from 'lucide-react';
 
 interface CommanderInputProps {
@@ -9,6 +8,7 @@ interface CommanderInputProps {
   onVoiceStart?: () => void;
   isListening?: boolean;
   disabled?: boolean;
+  placeholder?: string;
 }
 
 export function CommanderInput({
@@ -16,6 +16,7 @@ export function CommanderInput({
   onVoiceStart,
   isListening = false,
   disabled = false,
+  placeholder = 'Issue a directive to CORE module...',
 }: CommanderInputProps) {
   const [input, setInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -38,27 +39,19 @@ export function CommanderInput({
   };
 
   return (
-    <motion.form
-      onSubmit={handleSubmit}
-      className="px-6 py-4 border-t border-border"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 }}
-    >
+    <form onSubmit={handleSubmit} className="w-full">
+      {/* Input container */}
       <div
-        className={`
-          flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-sm
-          transition-all duration-200 bg-input
-          ${isFocused ? 'border-primary ring-2 ring-primary/30' : 'border-border'}
-          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+          isFocused
+            ? 'border-cyan bg-surface-light cyan-glow'
+            : 'border-cyan/15 bg-surface'
+        }`}
       >
-        {/* Attach file button */}
+        {/* Attachment button */}
         <button
           type="button"
-          className="text-muted-foreground hover:text-foreground transition-colors"
-          title="Attach file"
-          disabled={disabled}
+          className="p-1.5 text-cyan/60 hover:text-cyan transition-colors"
         >
           <Paperclip size={18} />
         </button>
@@ -72,57 +65,36 @@ export function CommanderInput({
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="Issue a directive to CORE module..."
-          className="flex-1 bg-transparent outline-none text-foreground placeholder-muted-foreground font-sans"
+          placeholder={placeholder}
           disabled={disabled}
+          className="flex-1 bg-transparent text-text-primary placeholder-text-tertiary outline-none font-sans text-sm"
         />
 
         {/* Voice button */}
-        <motion.button
+        <button
           type="button"
           onClick={onVoiceStart}
-          className={`
-            flex items-center justify-center w-8 h-8 rounded transition-all duration-200
-            ${isListening ? 'bg-red-500/20 text-red-400' : 'text-muted-foreground hover:text-foreground'}
-          `}
-          title={isListening ? 'Listening...' : 'Voice input'}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={disabled}
+          className={`p-1.5 transition-colors ${
+            isListening ? 'animate-pulse-cyan text-cyan' : 'text-cyan/60 hover:text-cyan'
+          }`}
         >
-          {isListening && (
-            <motion.div
-              className="absolute w-8 h-8 rounded border border-red-500/50 rounded"
-              animate={{ scale: [1, 1.2] }}
-              transition={{ duration: 0.8, repeat: Infinity }}
-            />
-          )}
           <Mic size={18} />
-        </motion.button>
+        </button>
 
         {/* Send button */}
-        <motion.button
+        <button
           type="submit"
-          className="
-            flex items-center justify-center w-8 h-8 rounded-lg
-            bg-gradient-to-br from-cyan-500/30 to-blue-600/30
-            text-cyan-400 hover:from-cyan-500/50 hover:to-blue-600/50
-            transition-all duration-200 border border-cyan-500/40
-            disabled:opacity-50 disabled:cursor-not-allowed
-          "
-          whileHover={{ scale: 1.05, boxShadow: '0 0 12px rgba(0, 240, 255, 0.3)' }}
-          whileTap={{ scale: 0.95 }}
-          title="Send message"
           disabled={disabled || !input.trim()}
+          className="p-1.5 bg-cyan/10 border border-cyan/30 rounded-lg text-cyan hover:bg-cyan/20 hover:border-cyan disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           <Send size={16} />
-        </motion.button>
+        </button>
       </div>
 
-      {/* Helper text */}
-      <div className="mt-2 text-xs text-muted-foreground font-mono">
+      {/* Help text */}
+      <div className="text-center mt-2 text-9px font-mono text-text-tertiary">
         Press Enter to send • Shift+Enter for new line
       </div>
-    </motion.form>
+    </form>
   );
 }

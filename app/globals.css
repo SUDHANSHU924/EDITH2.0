@@ -1,4 +1,4 @@
-/* Global styles for EDITH */
+/* Global styles for EDITH 2.0 */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -6,63 +6,386 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables for EDITH Theme */
+/* ════════════════════════════════════════════════════════════════ */
+/* CSS VARIABLES FOR EDITH THEME */
+/* ════════════════════════════════════════════════════════════════ */
 :root {
+  /* Primary Colors */
+  --edith-void: #050505;
+  --edith-cyan: #00F0FF;
+  --edith-white: #FFFFFF;
+  --edith-red: #FF2A4B;
+  --edith-violet: #7B61FF;
+  --edith-blue: #0066CC;
+  
+  /* Surface & Glass */
+  --edith-surface: rgba(10, 20, 40, 0.8);
+  --edith-surface-light: rgba(10, 20, 40, 0.6);
+  --edith-surface-dark: rgba(5, 5, 5, 0.95);
+  
+  /* Borders */
+  --edith-border: rgba(0, 240, 255, 0.15);
+  --edith-border-active: #00F0FF;
+  --edith-border-secondary: rgba(255, 255, 255, 0.1);
+  --edith-border-red: #FF2A4B;
+  
+  /* Text Colors */
+  --edith-text-primary: #FFFFFF;
+  --edith-text-secondary: rgba(255, 255, 255, 0.5);
+  --edith-text-tertiary: rgba(255, 255, 255, 0.3);
+  --edith-text-cyan: #00F0FF;
+  
+  /* Status Colors */
+  --edith-status-green: #00CC88;
+  --edith-status-yellow: #FFB800;
+  --edith-status-red: #FF2A4B;
+  --edith-status-violet: #7B61FF;
+  
+  /* Legacy Tailwind vars (for compatibility) */
   --background: #050505;
   --foreground: #f5f5f5;
   --card: #0a0a12;
   --card-foreground: #f5f5f5;
-  
   --primary: #00f0ff;
   --primary-dark: #0099cc;
   --primary-foreground: #030213;
-  
   --secondary: #7b61ff;
   --secondary-foreground: #f5f5f5;
-  
   --accent: #00f0ff;
   --accent-foreground: #030213;
-  
   --muted: #3d3d45;
   --muted-foreground: #a0a0a8;
-  
   --destructive: #ff2a4b;
   --destructive-foreground: #ffffff;
-  
   --border: rgba(255, 255, 255, 0.08);
   --input: #0a0a12;
   --input-border: rgba(255, 255, 255, 0.08);
-  
   --sidebar: #050505;
   --sidebar-foreground: #f5f5f5;
   --sidebar-primary: #00f0ff;
   --sidebar-accent: #1a1a22;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  
   --radius: 8px;
 }
 
 * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   @apply border-border;
 }
 
 html {
   scroll-behavior: smooth;
+  height: 100%;
+  width: 100%;
 }
 
 body {
   @apply bg-background text-foreground;
-  color: var(--foreground);
-  background-color: var(--background);
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #050505;
+  color: var(--edith-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
   line-height: 1.6;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography */
+#__next {
+  height: 100%;
+  width: 100%;
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* SCROLLBAR STYLING */
+/* ════════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.3);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.5);
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* GRID BACKGROUND PATTERN */
+/* ════════════════════════════════════════════════════════════════ */
+.edith-grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* GLOW EFFECTS */
+/* ════════════════════════════════════════════════════════════════ */
+.cyan-glow {
+  box-shadow:
+    0 0 20px rgba(0, 240, 255, 0.15),
+    0 0 40px rgba(0, 240, 255, 0.05);
+}
+
+.cyan-text-glow {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+}
+
+.red-glow {
+  box-shadow:
+    0 0 20px rgba(255, 42, 75, 0.2),
+    inset 0 0 20px rgba(255, 42, 75, 0.1);
+}
+
+.violet-glow {
+  box-shadow: 0 0 20px rgba(123, 97, 255, 0.2);
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* GLASS MORPHISM PANELS */
+/* ════════════════════════════════════════════════════════════════ */
+.glass-panel {
+  background: rgba(10, 20, 40, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+}
+
+.glass-panel-light {
+  background: rgba(10, 20, 40, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 240, 255, 0.1);
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* CYAN BEAM - For EDITH message left border */
+/* ════════════════════════════════════════════════════════════════ */
+.cyan-beam {
+  border-left: 1px solid #00F0FF;
+  padding-left: 12px;
+}
+
+.cyan-beam-pulsing {
+  border-left: 1px solid #00F0FF;
+  animation: pulse-cyan 2s ease-in-out infinite;
+  padding-left: 12px;
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* ALERT STATES */
+/* ════════════════════════════════════════════════════════════════ */
+.alert-red {
+  border-color: #FF2A4B !important;
+  box-shadow:
+    0 0 20px rgba(255, 42, 75, 0.2) !important,
+    inset 0 0 20px rgba(255, 42, 75, 0.1) !important;
+}
+
+.alert-yellow {
+  border-color: #FFB800 !important;
+  box-shadow: 0 0 20px rgba(255, 184, 0, 0.2) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* ANIMATIONS */
+/* ════════════════════════════════════════════════════════════════ */
+@keyframes pulse-cyan {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 5px rgba(0, 240, 255, 0.1);
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 42, 75, 0.3);
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 5px rgba(255, 42, 75, 0.1);
+  }
+}
+
+@keyframes stream-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes thinking-branch {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 8px rgba(0, 240, 255, 0.3),
+      0 0 16px rgba(0, 240, 255, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 16px rgba(0, 240, 255, 0.5),
+      0 0 24px rgba(0, 240, 255, 0.3);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* ANIMATION UTILITY CLASSES */
+/* ════════════════════════════════════════════════════════════════ */
+.animate-pulse-cyan {
+  animation: pulse-cyan 2s ease-in-out infinite;
+}
+
+.animate-pulse-red {
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+.animate-stream-scroll {
+  animation: stream-scroll 10s linear infinite;
+}
+
+.animate-thinking-branch {
+  animation: thinking-branch 0.5s ease-out;
+}
+
+.animate-scan-line {
+  animation: scan-line 2s linear infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease-in-out;
+}
+
+.animate-slide-in-down {
+  animation: slideInDown 0.3s ease-in-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-in-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-in-out;
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+/* TYPOGRAPHY */
+/* ════════════════════════════════════════════════════════════════ */
 h1, h2, h3, h4, h5, h6 {
   @apply font-semibold tracking-tight;
+  font-family: 'Inter', sans-serif;
 }
 
 h1 {
@@ -94,110 +417,60 @@ p {
 }
 
 code, pre {
-  @apply font-mono text-sm;
+  font-family: 'JetBrains Mono', monospace;
+  @apply text-sm;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-background;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-muted rounded;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground;
-}
-
-/* Focus states */
+/* ════════════════════════════════════════════════════════════════ */
+/* FOCUS STATES */
+/* ════════════════════════════════════════════════════════════════ */
 :focus-visible {
-  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  @apply outline-none ring-2 ring-offset-2 ring-offset-background;
+  ring-color: rgba(0, 240, 255, 0.5);
 }
 
 button:focus-visible {
   @apply ring-offset-0;
 }
 
-/* Animations */
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
-  }
+input:focus-visible {
+  border-color: #00F0FF;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(0, 240, 255, 0.3), 0 0 16px rgba(0, 240, 255, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(0, 240, 255, 0.5), 0 0 24px rgba(0, 240, 255, 0.3);
-  }
+/* ════════════════════════════════════════════════════════════════ */
+/* UTILITY CLASSES */
+/* ════════════════════════════════════════════════════════════════ */
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.font-sans {
+  font-family: 'Inter', sans-serif;
 }
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.text-cyan {
+  color: #00F0FF;
 }
 
-/* Utility classes */
-.glow {
-  animation: glow 2s ease-in-out infinite;
+.text-red {
+  color: #FF2A4B;
 }
 
-.pulse-glow {
-  animation: pulse-glow 2.5s ease-in-out infinite;
+.text-violet {
+  color: #7B61FF;
 }
 
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+.border-cyan {
+  border-color: #00F0FF;
 }
 
-.slide-in-up {
-  animation: slideInUp 0.3s ease-in-out;
+.border-red {
+  border-color: #FF2A4B;
 }
 
-/* Gradient backgrounds */
-.bg-edith-gradient {
-  background: linear-gradient(180deg, rgba(5,5,5,0.98) 0%, rgba(8,12,20,0.96) 100%);
-}
-
-.bg-sidebar-gradient {
-  background: linear-gradient(180deg, rgba(5,5,5,0.98) 0%, rgba(8,12,20,0.96) 100%);
-}
-
-/* Backdrop blur support */
-.backdrop-blur-xl {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-/* Card styles */
-.card {
-  @apply bg-card text-card-foreground border border-border rounded-lg p-6;
+.bg-cyan-glow {
+  background-color: rgba(0, 240, 255, 0.1);
 }
 
 .card-compact {
