@@ -1,4 +1,228 @@
 /* Global styles for EDITH */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* CSS Variables for EDITH Theme */
+:root {
+  --background: #050505;
+  --foreground: #f5f5f5;
+  --card: #0a0a12;
+  --card-foreground: #f5f5f5;
+  
+  --primary: #00f0ff;
+  --primary-dark: #0099cc;
+  --primary-foreground: #030213;
+  
+  --secondary: #7b61ff;
+  --secondary-foreground: #f5f5f5;
+  
+  --accent: #00f0ff;
+  --accent-foreground: #030213;
+  
+  --muted: #3d3d45;
+  --muted-foreground: #a0a0a8;
+  
+  --destructive: #ff2a4b;
+  --destructive-foreground: #ffffff;
+  
+  --border: rgba(255, 255, 255, 0.08);
+  --input: #0a0a12;
+  --input-border: rgba(255, 255, 255, 0.08);
+  
+  --sidebar: #050505;
+  --sidebar-foreground: #f5f5f5;
+  --sidebar-primary: #00f0ff;
+  --sidebar-accent: #1a1a22;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  
+  --radius: 8px;
+}
+
+* {
+  @apply border-border;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground;
+  color: var(--foreground);
+  background-color: var(--background);
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-semibold tracking-tight;
+}
+
+h1 {
+  @apply text-4xl;
+}
+
+h2 {
+  @apply text-3xl;
+}
+
+h3 {
+  @apply text-2xl;
+}
+
+h4 {
+  @apply text-xl;
+}
+
+h5 {
+  @apply text-lg;
+}
+
+h6 {
+  @apply text-base;
+}
+
+p {
+  @apply text-base leading-relaxed;
+}
+
+code, pre {
+  @apply font-mono text-sm;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
+}
+
+/* Focus states */
+:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
+
+button:focus-visible {
+  @apply ring-offset-0;
+}
+
+/* Animations */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.3), 0 0 16px rgba(0, 240, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.5), 0 0 24px rgba(0, 240, 255, 0.3);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Utility classes */
+.glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-in-up {
+  animation: slideInUp 0.3s ease-in-out;
+}
+
+/* Gradient backgrounds */
+.bg-edith-gradient {
+  background: linear-gradient(180deg, rgba(5,5,5,0.98) 0%, rgba(8,12,20,0.96) 100%);
+}
+
+.bg-sidebar-gradient {
+  background: linear-gradient(180deg, rgba(5,5,5,0.98) 0%, rgba(8,12,20,0.96) 100%);
+}
+
+/* Backdrop blur support */
+.backdrop-blur-xl {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Card styles */
+.card {
+  @apply bg-card text-card-foreground border border-border rounded-lg p-6;
+}
+
+.card-compact {
+  @apply bg-card text-card-foreground border border-border rounded-lg p-4;
+}
+
+/* Button base style */
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-primary {
+  @apply btn bg-primary text-primary-foreground hover:bg-primary-dark;
+}
+
+.btn-secondary {
+  @apply btn bg-secondary text-secondary-foreground hover:opacity-90;
+}
+
+.btn-ghost {
+  @apply btn bg-transparent text-foreground hover:bg-card border border-border;
+}
+
+/* Input styles */
+.input-base {
+  @apply w-full px-4 py-2 rounded-lg bg-input border border-input-border text-foreground placeholder-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary;
+}
+

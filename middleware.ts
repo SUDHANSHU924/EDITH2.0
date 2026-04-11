@@ -1,4 +1,10 @@
+import type { NextRequest } from 'next/server';
+
 // Route protection middleware
-export function authMiddleware(req: any, res: any) {
-  return res;
+export function middleware(request: NextRequest) {
+  return request;
 }
+
+export const config = {
+  matcher: [],
+};
