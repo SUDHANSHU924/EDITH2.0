@@ -5,7 +5,10 @@ import uvicorn
 
 from core.config import settings
 from core.logging import configure_logging
-from routers import edith, search, code, vision, voice, memory, hacker, satellite
+from routers import (
+    edith, search, code, vision, voice, memory, hacker, satellite,
+    planning, files, learning, ml, iot, personal, security, daily
+)
 from ws_handlers.handler import websocket_endpoint
 
 configure_logging()
@@ -18,18 +21,31 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.CLIENT_URL],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://*.app.github.dev",
+        "*"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(edith.router, prefix="/api/edith")
-app.include_router(search.router, prefix="/api/search")
+app.include_router(planning.router, prefix="/api/planning")
 app.include_router(code.router, prefix="/api/code")
+app.include_router(files.router, prefix="/api/files")
+app.include_router(search.router, prefix="/api/search")
+app.include_router(learning.router, prefix="/api/learning")
+app.include_router(ml.router, prefix="/api/ml")
+app.include_router(iot.router, prefix="/api/iot")
 app.include_router(vision.router, prefix="/api/vision")
 app.include_router(voice.router, prefix="/api/voice")
 app.include_router(memory.router, prefix="/api/memory")
+app.include_router(personal.router, prefix="/api/personal")
+app.include_router(security.router, prefix="/api/security")
+app.include_router(daily.router, prefix="/api/daily")
 app.include_router(hacker.router, prefix="/api/hacker")
 app.include_router(satellite.router, prefix="/api/satellite")
 

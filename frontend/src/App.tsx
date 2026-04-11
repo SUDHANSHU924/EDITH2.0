@@ -6,6 +6,7 @@ import { AlertOctagon, ChevronUp, ChevronDown } from 'lucide-react';
 import { BackgroundGrid } from './components/BackgroundGrid';
 import { useEdith } from './hooks/useEdith';
 import { useChatStore } from './store/chatStore';
+import { checkHealth } from './lib/api';
 import { OrbitSidebar } from './components/OrbitSidebar';
 import { CommandInput } from './components/CommandInput';
 import { MessageBubble } from './components/MessageBubble';
@@ -77,6 +78,17 @@ export default function App() {
   useEffect(() => {
     scrollToBottom();
   }, [displayMessages]);
+
+  // Check backend health on load
+  useEffect(() => {
+    checkHealth().then(online => {
+      if (online) {
+        console.log('✓ EDITH backend connected')
+      } else {
+        console.warn('⚠ EDITH backend offline')
+      }
+    })
+  }, [])
 
   // Close stage menu on outside click
   useEffect(() => {
