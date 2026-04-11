@@ -71,8 +71,8 @@ export function Sidebar({ activeItem = 'commander', onItemClick }: SidebarProps)
             transition={{ duration: 0.15 }}
           >
             <div className="flex flex-col">
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '14px', color: '#FFFFFF', fontWeight: 'bold' }}>AURA 2.0</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#00F0FF' }}>COMMAND BRIDGE</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '14px', color: '#FFFFFF', fontWeight: 'bold' }}>E.D.I.T.H</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#00F0FF' }}>ONLINE</span>
             </div>
           </motion.div>
         )}

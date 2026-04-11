@@ -53,7 +53,7 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent">
-            AURA 2.0
+            E.D.I.T.H
           </span>
         </motion.h1>
 
@@ -63,7 +63,7 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.3 }}
         >
-          Advanced Universal Reasoning Architecture
+          Exceptional Digital Intelligence for Task Handling
         </motion.p>
 
         <motion.p
@@ -72,7 +72,7 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          v2.0 — 12 Command Modules · Autonomous Planning · Conversational AI
+          v2.0 — 15 Systems · Autonomous Planning · Conversational AI
         </motion.p>
 
         {/* Features */}
@@ -83,9 +83,9 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.5 }}
         >
           {[
-            { title: '12 Modules', desc: 'Command modules for every task' },
-            { title: 'Autonomous', desc: 'Self-learning & adaptive reasoning' },
-            { title: '24/7 Online', desc: 'Always available and responsive' },
+          { title: 'Conversational', desc: 'Natural language dialogue' },
+          { title: 'Code Generation', desc: 'Full-stack coding assistance' },
+          { title: 'Security Analysis', desc: 'Ethical hacking & pentesting' },
           ].map((feature, i) => (
             <div
               key={i}

@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'AURA 2.0 | Advanced Universal Reasoning Architecture',
-  description: 'Advanced AI assistant with 12 specialized command modules for development, research, and automation',
+  title: 'E.D.I.T.H 2.0 | Exceptional Digital Intelligence for Task Handling',
+  description: 'Advanced AI assistant with 15 specialized systems for development, research, and automation',
   icons: {
     icon: '/icons/edith-logo.svg',
   },

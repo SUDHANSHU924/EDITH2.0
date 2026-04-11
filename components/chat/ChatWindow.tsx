@@ -61,9 +61,9 @@ export function ChatWindow({
               A2
             </div>
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold">AURA 2.0 Online</h1>
+              <h1 className="text-2xl font-semibold">E.D.I.T.H Online</h1>
               <p className="text-muted-foreground max-w-xs">
-                All 12 command modules initialized. Ready for directives.
+                All 15 systems initialized. Ready for commands.
               </p>
             </div>
           </motion.div>

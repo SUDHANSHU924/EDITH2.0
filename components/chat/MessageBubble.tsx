@@ -46,7 +46,7 @@ export function MessageBubble({
         {/* Sender label */}
         {sender === 'ai' && (
           <div className="text-xs font-mono font-semibold mb-2" style={{ color: accentColor }}>
-            AURA 2.0
+            E.D.I.T.H
           </div>
         )}
 

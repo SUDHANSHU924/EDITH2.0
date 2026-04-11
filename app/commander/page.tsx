@@ -14,11 +14,11 @@ interface Message {
   timestamp?: string;
 }
 
-const BOOT_MESSAGE = `AURA 2.0 — Online.
+const BOOT_MESSAGE = `E.D.I.T.H — Online.
 Commander recognized. Ready for directives.
 Capabilities active: Code · Search · Files · Analysis · Security · Automation
 
-All 12 command modules initialized. Select a module from The ORBIT or issue a directive.
+All 15 systems initialized. Select a system or issue a directive.
 
 How can I serve you today?`;
 
