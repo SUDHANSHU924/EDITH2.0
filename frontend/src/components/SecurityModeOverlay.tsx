@@ -13,7 +13,15 @@ export function SecurityModeOverlay({ onComplete }: SecurityModeOverlayProps) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+      className="flex items-center justify-center pointer-events-none"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 100
+      }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

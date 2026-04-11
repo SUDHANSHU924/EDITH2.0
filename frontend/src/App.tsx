@@ -175,7 +175,7 @@ export default function App() {
 
   return (
     <div
-      className="relative w-full h-screen overflow-hidden"
+      style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#050505", display: "flex", flexDirection: "column" }}
       style={{ background: '#050505' }}
     >
       {/* Background */}
@@ -196,26 +196,32 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Left Sidebar — The ORBIT (offset by HUD bar) */}
-      <div className="fixed left-0 top-8 bottom-0 z-50">
-        <OrbitSidebar
-          securityMode={securityMode}
-          onSecurityToggle={handleSecurityToggle}
-          activeDepartment={activeDepartment}
-          onDepartmentChange={handleDepartmentChange}
-        />
-      </div>
+      {/* THREE PANELS ROW */}
+      <div style={{
+        display: 'flex',
+        flex: 1,
+        overflow: 'hidden',
+        position: 'relative'
+      }}>
+        {/* Left Sidebar — The ORBIT */}
+        <div style={{ flexShrink: 0, height: '100%', zIndex: 10, position: 'relative' }}>
+          <OrbitSidebar
+            securityMode={securityMode}
+            onSecurityToggle={handleSecurityToggle}
+            activeDepartment={activeDepartment}
+            onDepartmentChange={handleDepartmentChange}
+          />
+        </div>
 
-      {/* Right Sidebar — The PERIPHERY (offset by HUD bar) */}
-      <div className="fixed right-0 top-8 bottom-0 z-40">
-        <PeripherySidebar
-          securityMode={securityMode}
-          activeDepartment={activeDepartment}
-        />
-      </div>
-
-      {/* Center — The HORIZON (offset by HUD bar) */}
-      <div className="absolute left-[72px] right-80 top-8 bottom-0 flex flex-col">
+        {/* Center — The HORIZON */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          minWidth: 0,
+          position: 'relative'
+        }}>
 
         {/* Header */}
         <div
@@ -498,8 +504,8 @@ export default function App() {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-7 py-6 pb-44 horizon-scroll">
-          <div className="max-w-3xl mx-auto">
+        <div className="flex-1 overflow-y-auto px-7 py-6 pb-44 horizon-scroll" style={{ minHeight: 0 }}>
+          <div className="max-w-3xl mx-auto flex flex-col gap-6">
             {messages.map((message) => (
               <MessageBubble
                 key={message.id}
@@ -513,15 +519,26 @@ export default function App() {
             <div ref={messagesEndRef} />
           </div>
         </div>
+
+        {/* Command Input — The PEDESTAL */}
+        <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px', zIndex: 20 }}>
+          <CommandInput
+            onSendMessage={handleSendMessage}
+            securityMode={securityMode}
+            activeDepartment={activeDepartment}
+            departmentColor={accentColor}
+          />
+        </div>
       </div>
 
-      {/* Command Input — The PEDESTAL */}
-      <CommandInput
-        onSendMessage={handleSendMessage}
-        securityMode={securityMode}
-        activeDepartment={activeDepartment}
-        departmentColor={accentColor}
-      />
+      {/* Right Sidebar — The PERIPHERY */}
+      <div style={{ flexShrink: 0, width: '320px', height: '100%', overflowY: 'auto', borderLeft: '1px solid rgba(0,240,255,0.08)' }}>
+        <PeripherySidebar
+          securityMode={securityMode}
+          activeDepartment={activeDepartment}
+        />
+      </div>
+    </div>
 
       <style>{`
         .horizon-scroll::-webkit-scrollbar { width: 3px; }

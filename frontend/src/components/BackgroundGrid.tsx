@@ -2,7 +2,17 @@ import { motion } from 'motion/react';
 
 export function BackgroundGrid() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div 
+      className="overflow-hidden pointer-events-none"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 0
+      }}
+    >
       {/* Fine dot grid */}
       <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.025 }}>
         <defs>

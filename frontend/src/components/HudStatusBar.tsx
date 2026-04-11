@@ -34,8 +34,11 @@ export function HudStatusBar({
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[70] h-8 flex items-center px-4 gap-4"
+      className="top-0 left-0 right-0 z-[70] h-8 flex items-center px-4 gap-4"
       style={{
+        flexShrink: 0,
+        position: 'relative',
+        width: '100%',
         background: 'rgba(5,5,5,0.97)',
         borderBottom: `1px solid ${securityMode ? 'rgba(255,42,75,0.15)' : 'rgba(255,255,255,0.05)'}`,
         backdropFilter: 'blur(12px)',

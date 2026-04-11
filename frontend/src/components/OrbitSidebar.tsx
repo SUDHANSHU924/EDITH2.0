@@ -26,15 +26,16 @@ export function OrbitSidebar({
 
   return (
     <motion.div
-      className="h-full z-50"
+      className="h-full z-10"
       initial={false}
       animate={{ width: expanded ? 272 : 72 }}
       transition={{ type: 'spring', stiffness: 320, damping: 32 }}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
+      style={{ overflow: 'hidden' }}
     >
       <div
-        className="h-full flex flex-col"
+        className="h-full flex flex-col w-full"
         style={{
           background: 'linear-gradient(180deg, rgba(5,5,5,0.98) 0%, rgba(8,12,20,0.96) 100%)',
           borderRight: `1px solid ${securityMode ? 'rgba(255,42,75,0.15)' : 'rgba(255,255,255,0.05)'}`,

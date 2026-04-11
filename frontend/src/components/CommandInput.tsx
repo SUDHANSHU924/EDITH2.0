@@ -63,7 +63,7 @@ export function CommandInput({
 
   return (
     <div
-      className="fixed bottom-0 left-[72px] right-80 z-40 pb-5 pt-3 px-6"
+      className="w-full pb-5 pt-3"
       style={{
         background: 'linear-gradient(to top, rgba(5,5,5,0.98) 60%, transparent)',
       }}
