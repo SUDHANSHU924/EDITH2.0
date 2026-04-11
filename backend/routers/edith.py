@@ -36,10 +36,12 @@ SYSTEM_PROMPTS = {
     "personal": "You are EDITH Personalize — human intelligence layer.",
     "security": "You are EDITH Security Grid — privacy and ethics guardian.",
     "daily": "You are EDITH Daily Ops — everyday task assistant.",
+    "hacker": "You are EDITH Hacker Grid — ethical security testing system.",
+    "satellite": "You are EDITH Satellite Intelligence — orbital tracking system.",
 }
 
 
-async def stream_groq(content: str, department: str):
+async def stream_groq(messages: List[Message], department: str):
     """Stream response from Groq API"""
     try:
         from groq import AsyncGroq
@@ -50,12 +52,17 @@ async def stream_groq(content: str, department: str):
         client = AsyncGroq(api_key=settings.GROQ_API_KEY)
         system_prompt = SYSTEM_PROMPTS.get(department, SYSTEM_PROMPTS["core"])
         
+        payload_messages = [{"role": "system", "content": system_prompt}]
+        for message in messages:
+            if not message.content:
+                continue
+            payload_messages.append({"role": message.role, "content": message.content})
+        if len(payload_messages) == 1:
+            payload_messages.append({"role": "user", "content": "Hello"})
+
         stream = await client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": content}
-            ],
+            model=settings.GROQ_MODEL,
+            messages=payload_messages,
             stream=True,
             max_tokens=1024
         )
@@ -75,7 +82,7 @@ async def stream_groq(content: str, department: str):
         yield "data: [DONE]\n\n"
 
 
-async def stream_fallback(content: str, department: str):
+async def stream_fallback(messages: List[Message], department: str):
     """Fallback mock response if Groq fails"""
     fallbacks = {
         "core": "EDITH Core online. Please add Groq API key for full AI responses.",
@@ -83,6 +90,9 @@ async def stream_fallback(content: str, department: str):
         "code": "Code Forge initialized. Ready for code generation.",
         "search": "Search system active. Add TAVILY_API_KEY for real-time search.",
         "security": "Security Grid online. Threat analysis module ready.",
+        "daily": "Daily Ops online. Scheduling workflows ready.",
+        "hacker": "Hacker Grid online. Authorized testing only.",
+        "satellite": "Satellite Intel online. Tracking systems ready.",
     }
     response = fallbacks.get(department, f"EDITH {department.upper()} system online.")
     
@@ -94,12 +104,14 @@ async def stream_fallback(content: str, department: str):
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
-    last_msg = request.messages[-1].content if request.messages else "Hello"
-    
+    messages = [msg for msg in request.messages if msg.content and msg.content.strip()]
+    if not messages:
+        messages = [Message(role="user", content="Hello")]
+
     if settings.GROQ_API_KEY:
-        stream_func = stream_groq(last_msg, request.department)
+        stream_func = stream_groq(messages, request.department)
     else:
-        stream_func = stream_fallback(last_msg, request.department)
+        stream_func = stream_fallback(messages, request.department)
     
     return StreamingResponse(
         stream_func,

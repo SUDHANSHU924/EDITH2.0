@@ -1,13 +1,15 @@
 import {
   Cpu, Code2, GitBranch, Globe, BarChart3, Eye,
   FolderOpen, Shield, Mic, Sliders, Wifi, Zap,
+  Calendar, Bug, Satellite,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export type DepartmentId =
   | 'core' | 'code' | 'agent' | 'search'
   | 'data' | 'vision' | 'files' | 'security'
-  | 'voice' | 'personal' | 'iot' | 'learn';
+  | 'voice' | 'personal' | 'iot' | 'learn'
+  | 'daily' | 'hacker' | 'satellite';
 
 export interface Department {
   id: DepartmentId;
@@ -130,6 +132,33 @@ export const DEPARTMENTS: Department[] = [
     icon: Shield,
     isSecurity: true,
   },
+  {
+    id: 'daily',
+    label: 'DAILY OPS',
+    shortLabel: 'DAILY',
+    subtitle: 'Everyday Assistant',
+    color: '#FFD166',
+    moduleNum: '13',
+    icon: Calendar,
+  },
+  {
+    id: 'hacker',
+    label: 'HACKER GRID',
+    shortLabel: 'HACK',
+    subtitle: 'Offensive Security',
+    color: '#FF6B6B',
+    moduleNum: '14',
+    icon: Bug,
+  },
+  {
+    id: 'satellite',
+    label: 'SATELLITE INTEL',
+    shortLabel: 'SAT',
+    subtitle: 'Orbital Systems',
+    color: '#4CC9F0',
+    moduleNum: '15',
+    icon: Satellite,
+  },
 ];
 
 export const DEPARTMENT_WELCOMES: Record<DepartmentId, string> = {
@@ -145,6 +174,9 @@ export const DEPARTMENT_WELCOMES: Record<DepartmentId, string> = {
   voice: 'VOICE OPS online. ASR and TTS engines primed. Whisper multilingual model loaded. Wake-word detection armed. Push-to-talk latency: 34ms. Ready.',
   personal: 'PERSONALIZATION ENGINE engaged. Commander profile analysis running. Adaptive response calibration active. Expertise level: detecting. Preference modeling initialized.',
   security: 'SECURITY GRID primed. Ethical hacker protocols loaded. OWASP Top 10 scanner active. CVE database synced. Vulnerability analysis ready. Awaiting your security directive.',
+  daily: 'DAILY OPS online. Scheduling, summaries, and routines ready. What should I handle first?',
+  hacker: 'HACKER GRID online. Authorized testing only. Provide scope, target, and approval.',
+  satellite: 'SATELLITE INTEL online. Tracking, imagery, and telemetry tools ready. Provide target and timeframe.',
 };
 
 export const DEPARTMENT_COMMANDS: Record<DepartmentId, string[]> = {
@@ -160,6 +192,9 @@ export const DEPARTMENT_COMMANDS: Record<DepartmentId, string[]> = {
   voice: ['Configure voice settings', 'Test TTS output', 'Set wake word', 'Enable push-to-talk'],
   personal: ['Update my preferences', 'Calibrate expertise level', 'Set response style', 'Build my Commander profile'],
   security: ['Scan for vulnerabilities', 'Pen test this endpoint', 'OWASP audit', 'Generate threat model'],
+  daily: ['Build today\'s plan', 'Check weather', 'Summarize my tasks', 'Draft a daily report'],
+  hacker: ['Run vulnerability scan', 'CVE lookup', 'OSINT sweep', 'Generate pentest report'],
+  satellite: ['Track a satellite', 'Predict pass window', 'Fetch imagery', 'Analyze orbital data'],
 };
 
 export const AI_RESPONSES: Record<DepartmentId, string[]> = {
@@ -234,5 +269,20 @@ export const AI_RESPONSES: Record<DepartmentId, string[]> = {
     'Penetration test simulation complete. Attack surface mapped.\n→ 14 exposed endpoints discovered\n→ 3 exploitable vulnerabilities (CVSS ≥ 7.5)\n→ CVE-2024-XXXX cross-referenced and confirmed\n→ Lateral movement path: 2 hops to admin panel\n\nIncident response playbook generated. Remediation priority ranked.',
     'Threat intelligence gathered. IoCs catalogued. Anomalous traffic pattern: 847 requests/min from single IP — DDoS signature detected. MITRE ATT&CK framework mapping: TA0001 (Initial Access), TA0006 (Credential Access). Alert raised.',
     'Vulnerability assessment complete. NIST NVD cross-reference: 3 new CVEs affect your dependency tree.\n→ CVE-2024-1234 (CVSS 9.8) — CRITICAL — patch available\n→ CVE-2024-5678 (CVSS 7.2) — HIGH — workaround available\n→ CVE-2024-9012 (CVSS 4.3) — MEDIUM — monitoring only\n\nPatching instructions generated.',
+  ],
+  daily: [
+    'Daily Ops ready. I can plan, summarize, and coordinate your routine. What should I prioritize?',
+    'Schedule drafted with buffers and reminders. Confirm timing or add constraints.',
+    'Daily report generated with highlights, blockers, and next actions.',
+  ],
+  hacker: [
+    'Scope confirmed. Running authorized checks only. Results will include risk ratings and remediation.',
+    'Recon complete. Attack surface mapped and prioritized. Awaiting next directive.',
+    'Report assembled with findings, CVSS scoring, and fixes. Ready for review.',
+  ],
+  satellite: [
+    'Tracking initialized. Orbit propagation and pass windows computed.',
+    'Imagery request queued. I will report availability and resolution options.',
+    'Telemetry summarized. Anomalies flagged and plotted for review.',
   ],
 };

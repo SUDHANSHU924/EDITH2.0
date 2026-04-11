@@ -20,6 +20,15 @@ export function useEdith(sessionId: string = "default", department: string = "co
       const timestamp = new Date().toISOString();
       addMessage({ role: "user", content: trimmed, timestamp });
 
+      const history = useChatStore
+        .getState()
+        .messages.filter((message) => message.content && !message.isStreaming)
+        .slice(-20)
+        .map((message) => ({
+          role: message.role,
+          content: message.content,
+        }));
+
       const assistantId = addMessage({
         role: "assistant",
         content: "",
@@ -30,7 +39,12 @@ export function useEdith(sessionId: string = "default", department: string = "co
       setThinking(true);
 
       try {
-        const stream = await sendToEDITH(trimmed, department, sessionId);
+        const stream = await sendToEDITH(
+          trimmed,
+          department,
+          sessionId,
+          history
+        );
         
         if (!stream) {
           throw new Error("Failed to connect to EDITH");

@@ -19,6 +19,7 @@ export function HudStatusBar({
 }: HudStatusBarProps) {
   const [time, setTime] = useState('');
   const [tick, setTick] = useState(true);
+  const moduleCount = DEPARTMENTS.length;
 
   useEffect(() => {
     const updateTime = () => {
@@ -73,7 +74,7 @@ export function HudStatusBar({
             letterSpacing: '0.06em',
           }}
         >
-          {securityMode ? 'TACTICAL' : '12 MOD ONLINE'}
+          {securityMode ? 'TACTICAL' : `${moduleCount} MOD ONLINE`}
         </span>
       </div>
 

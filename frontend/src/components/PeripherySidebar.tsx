@@ -591,6 +591,116 @@ function SecurityPanel({ color }: { color: string }) {
   );
 }
 
+function DailyPanel({ color }: { color: string }) {
+  const agenda = [
+    { label: 'Morning brief', status: 'READY' },
+    { label: 'Priority queue', status: 'SYNCED' },
+    { label: 'Daily report', status: 'QUEUED' },
+  ];
+
+  return (
+    <PanelWrapper color={color} title="DAILY OPS" badge="READY">
+      <div className="mb-4">
+        <div className="text-white/30 mb-2" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px' }}>TODAY</div>
+        <div className="space-y-1.5">
+          {agenda.map((item) => (
+            <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <Clock size={11} style={{ color }} />
+              <span className="text-white/60 flex-1 text-xs" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px' }}>{item.label}</span>
+              <span className="text-xs" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color }}>{item.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mb-4 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="text-white/30 mb-2" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px' }}>STATUS</div>
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={12} style={{ color }} />
+          <span className="text-xs text-white/60" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px' }}>Schedules synced and ready</span>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        {['Build today\'s plan', 'Summarize tasks', 'Generate daily report'].map((cmd) => (
+          <QuickCmd key={cmd} label={cmd} color={color} />
+        ))}
+      </div>
+    </PanelWrapper>
+  );
+}
+
+function HackerPanel({ color }: { color: string }) {
+  const checks = [
+    { label: 'Scope validation', status: 'REQUIRED' },
+    { label: 'Target reachability', status: 'OK' },
+    { label: 'Active scans', status: '0' },
+  ];
+
+  return (
+    <PanelWrapper color={color} title="HACKER GRID" badge="ARMED">
+      <div className="mb-4">
+        <div className="text-white/30 mb-2" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px' }}>PRE-FLIGHT</div>
+        <div className="space-y-1.5">
+          {checks.map((item) => (
+            <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <AlertTriangle size={10} style={{ color }} />
+              <span className="text-white/60 flex-1 text-xs" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px' }}>{item.label}</span>
+              <span className="text-xs" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color }}>{item.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mb-4 p-3 rounded-xl" style={{ background: `${color}0c`, border: `1px solid ${color}25` }}>
+        <div className="text-xs" style={{ fontFamily: 'JetBrains Mono, monospace', color }}>AUTHORIZED TESTING ONLY</div>
+        <div className="text-white/50 mt-2" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px' }}>Provide scope and approvals before scanning.</div>
+      </div>
+      <div className="space-y-1.5">
+        {['Run vulnerability scan', 'CVE lookup', 'Generate pentest report'].map((cmd) => (
+          <QuickCmd key={cmd} label={cmd} color={color} />
+        ))}
+      </div>
+    </PanelWrapper>
+  );
+}
+
+function SatellitePanel({ color }: { color: string }) {
+  const metrics = [
+    { label: 'ACTIVE TRACKS', value: '0' },
+    { label: 'NEXT PASS', value: '00:00' },
+    { label: 'IMAGERY QUEUE', value: '0' },
+  ];
+
+  return (
+    <PanelWrapper color={color} title="SATELLITE INTEL" badge="READY">
+      <div className="mb-4">
+        <div className="text-white/30 mb-2" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px' }}>ORBITAL STATUS</div>
+        <div className="grid grid-cols-3 gap-2">
+          {metrics.map((m) => (
+            <div key={m.label} className="p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="text-white/30 mb-1" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px' }}>{m.label}</div>
+              <div className="text-xs" style={{ fontFamily: 'JetBrains Mono, monospace', color }}>{m.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mb-4 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="flex items-center gap-2">
+          <Star size={11} style={{ color }} />
+          <span className="text-xs text-white/60" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px' }}>Telemetry channels on standby</span>
+        </div>
+        <div className="flex items-center gap-2 mt-2">
+          <TrendingUp size={11} style={{ color }} />
+          <span className="text-xs text-white/60" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px' }}>Orbital prediction ready</span>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        {['Track a satellite', 'Predict pass window', 'Fetch imagery'].map((cmd) => (
+          <QuickCmd key={cmd} label={cmd} color={color} />
+        ))}
+      </div>
+    </PanelWrapper>
+  );
+}
+
 // ── Helper Components ─────────────────────────────────────────────────────────
 
 function PanelWrapper({ children, color, title, badge }: {
@@ -693,6 +803,9 @@ export function PeripherySidebar({ securityMode, activeDepartment }: PeripherySi
       case 'voice':    return <VoicePanel color={currentDept.color} />;
       case 'personal': return <PersonalPanel color={currentDept.color} />;
       case 'security': return <SecurityPanel color={currentDept.color} />;
+      case 'daily':    return <DailyPanel color={currentDept.color} />;
+      case 'hacker':   return <HackerPanel color={currentDept.color} />;
+      case 'satellite': return <SatellitePanel color={currentDept.color} />;
       default:         return <CorePanel color={currentDept.color} />;
     }
   };

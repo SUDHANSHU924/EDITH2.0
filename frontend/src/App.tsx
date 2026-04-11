@@ -33,7 +33,7 @@ const BOOT_MESSAGE = `EDITH 2.0 — Online.
 Commander recognized. Ready for directives.
 Capabilities active: Code · Search · Files · Analysis · Security · Automation
 
-All 12 command modules initialized. Select a department from The ORBIT or issue a directive.
+All 15 command modules initialized. Select a department from The ORBIT or issue a directive.
 
 How can I serve you today?`;
 
@@ -66,6 +66,7 @@ export default function App() {
     id: 1,
     type: 'edith' as 'commander'|'edith',
     content: BOOT_MESSAGE,
+    isThinking: false,
     departmentColor: '#00F0FF',
   }] : chatMessages.map((m) => ({
     id: m.id || Date.now(),
@@ -154,7 +155,6 @@ export default function App() {
   return (
     <div
       style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#050505", display: "flex", flexDirection: "column" }}
-      style={{ background: '#050505' }}
     >
       {/* Background */}
       <BackgroundGrid />
@@ -179,7 +179,7 @@ export default function App() {
         display: 'flex',
         flex: 1,
         overflow: 'hidden',
-        position: 'relative'
+        position: 'relative',
       }}>
         {/* Left Sidebar — The ORBIT */}
         <div style={{ flexShrink: 0, height: '100%', zIndex: 10, position: 'relative' }}>
@@ -516,8 +516,7 @@ export default function App() {
           activeDepartment={activeDepartment}
         />
       </div>
-    </div>
-
+      </div>
       <style>{`
         .horizon-scroll::-webkit-scrollbar { width: 3px; }
         .horizon-scroll::-webkit-scrollbar-track { background: transparent; }
