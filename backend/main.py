@@ -6,7 +6,7 @@ import uvicorn
 from core.config import settings
 from core.logging import configure_logging
 from routers import edith, search, code, vision, voice, memory, hacker, satellite
-from websockets.handler import websocket_endpoint
+from ws_handlers.handler import websocket_endpoint
 
 configure_logging()
 
