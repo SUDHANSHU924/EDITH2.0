@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback } from "react";
-import { edithAPI } from "@/lib/api";
+import { sendToEDITH } from "@/lib/api";
 import { streamEdithResponse } from "@/hooks/useStream";
 import { useChatStore } from "@/store/chatStore";
 
-export function useEdith(sessionId: string = "default") {
+export function useEdith(sessionId: string = "default", department: string = "core") {
   const addMessage = useChatStore((state) => state.addMessage);
   const appendToMessage = useChatStore((state) => state.appendToMessage);
   const updateMessage = useChatStore((state) => state.updateMessage);
@@ -20,13 +20,6 @@ export function useEdith(sessionId: string = "default") {
       const timestamp = new Date().toISOString();
       addMessage({ role: "user", content: trimmed, timestamp });
 
-      const history = useChatStore
-        .getState()
-        .messages.map((message) => ({
-          role: message.role,
-          content: message.content,
-        }));
-
       const assistantId = addMessage({
         role: "assistant",
         content: "",
@@ -37,12 +30,13 @@ export function useEdith(sessionId: string = "default") {
       setThinking(true);
 
       try {
-        const response = await edithAPI.chat(history, sessionId);
-        if (!response.ok) {
+        const stream = await sendToEDITH(trimmed, department, sessionId);
+        
+        if (!stream) {
           throw new Error("Failed to connect to EDITH");
         }
 
-        await streamEdithResponse(response, {
+        await streamEdithResponse(new Response(stream), {
           onToken: (token) => appendToMessage(assistantId, token),
           onDone: () => {
             updateMessage(assistantId, { isStreaming: false });
@@ -57,6 +51,7 @@ export function useEdith(sessionId: string = "default") {
           },
         });
       } catch (error) {
+        console.error("useEdith error:", error);
         updateMessage(assistantId, {
           content: "EDITH backend unavailable.",
           isStreaming: false,
@@ -64,7 +59,7 @@ export function useEdith(sessionId: string = "default") {
         setThinking(false);
       }
     },
-    [addMessage, appendToMessage, updateMessage, setThinking, sessionId]
+    [addMessage, appendToMessage, updateMessage, setThinking, sessionId, department]
   );
 
   return { sendMessage, isThinking };

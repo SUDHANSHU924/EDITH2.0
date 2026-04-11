@@ -46,12 +46,12 @@ const AUTONOMY_STAGES = [
 
 export default function App() {
   const chatMessages = useChatStore((state) => state.messages);
-  const { sendMessage, isThinking } = useEdith();
   const [securityMode, setSecurityMode] = useState(false);
   const [showSecurityOverlay, setShowSecurityOverlay] = useState(false);
   const [activeDepartment, setActiveDepartment] = useState<DepartmentId>('core');
   const [autonomyStage, setAutonomyStage] = useState(1);
   const [showStageMenu, setShowStageMenu] = useState(false);
+  const { sendMessage, isThinking } = useEdith('commander-session', activeDepartment);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentDept = DEPARTMENTS.find((d) => d.id === activeDepartment)!;
