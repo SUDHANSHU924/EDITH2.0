@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     NVIDIA_MODEL_CODE: str = "deepseek-ai/deepseek-coder-v2"
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_VISION_MODEL: str = "llama-3.2-11b-vision-preview"
     HUGGINGFACE_API_KEY: str = ""
 
     TAVILY_API_KEY: str = ""

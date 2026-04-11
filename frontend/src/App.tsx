@@ -19,6 +19,7 @@ import {
   AI_RESPONSES,
   type DepartmentId,
 } from './departments';
+import type { Attachment } from './types/message.types';
 
 interface Message {
   id: number;
@@ -51,14 +52,23 @@ export default function App() {
   const [activeDepartment, setActiveDepartment] = useState<DepartmentId>('core');
   const [autonomyStage, setAutonomyStage] = useState(1);
   const [showStageMenu, setShowStageMenu] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
   const { sendMessage, isThinking } = useEdith('commander-session', activeDepartment);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageScrollRef = useRef<HTMLDivElement>(null);
 
   const currentDept = DEPARTMENTS.find((d) => d.id === activeDepartment)!;
   const accentColor = securityMode ? '#FF2A4B' : currentDept.color;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleMessageScroll = () => {
+    const container = messageScrollRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    setAutoScroll(distanceFromBottom < 120);
   };
 
 
@@ -68,17 +78,23 @@ export default function App() {
     content: BOOT_MESSAGE,
     isThinking: false,
     departmentColor: '#00F0FF',
+    attachments: undefined,
+    kind: undefined,
   }] : chatMessages.map((m) => ({
     id: m.id || Date.now(),
     type: (m.role === 'user' ? 'commander' : 'edith') as 'commander' | 'edith',
     content: m.content || '',
     isThinking: m.isStreaming,
     departmentColor: currentDept.color,
+    attachments: m.attachments,
+    kind: m.kind,
   }));
 
   useEffect(() => {
-    scrollToBottom();
-  }, [displayMessages]);
+    if (autoScroll) {
+      scrollToBottom();
+    }
+  }, [chatMessages, autoScroll]);
 
   // Check backend health on load
   useEffect(() => {
@@ -108,7 +124,7 @@ export default function App() {
     setActiveDepartment(deptId);
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, attachments?: Attachment[]) => {
     if (content.toLowerCase().includes('/engage-security-grid')) {
       setShowSecurityOverlay(true);
       return;
@@ -123,7 +139,8 @@ export default function App() {
       return;
     }
 
-    sendMessage(content);
+    setAutoScroll(true);
+    sendMessage(content, attachments);
   };
 
   const handleSecurityToggle = () => {
@@ -482,7 +499,12 @@ export default function App() {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-7 py-6 pb-44 horizon-scroll" style={{ minHeight: 0 }}>
+        <div
+          ref={messageScrollRef}
+          onScroll={handleMessageScroll}
+          className="flex-1 overflow-y-auto px-7 py-6 pb-44 horizon-scroll"
+          style={{ minHeight: 0 }}
+        >
           <div className="max-w-3xl mx-auto flex flex-col gap-6">
             {displayMessages.map((message) => (
               <MessageBubble
@@ -492,6 +514,8 @@ export default function App() {
                 isThinking={message.isThinking}
                 securityMode={securityMode}
                 departmentColor={message.departmentColor || currentDept.color}
+                attachments={message.attachments}
+                kind={message.kind}
               />
             ))}
             <div ref={messagesEndRef} />

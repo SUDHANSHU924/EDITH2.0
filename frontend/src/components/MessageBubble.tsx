@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Lock, Copy, Check, Terminal } from 'lucide-react';
 import { ThinkingVisualization } from './ThinkingVisualization';
+import type { Attachment } from '@/types/message.types';
 
 interface MessageBubbleProps {
   type: 'commander' | 'edith';
@@ -11,6 +12,8 @@ interface MessageBubbleProps {
   isThinking?: boolean;
   securityMode?: boolean;
   departmentColor?: string;
+  attachments?: Attachment[];
+  kind?: 'analysis' | 'default';
 }
 
 // ── Content Parser ─────────────────────────────────────────────────────────────
@@ -421,6 +424,75 @@ function renderInlineBrackets(text: string, color: string) {
   );
 }
 
+function formatBytes(bytes: number) {
+  if (!bytes) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / Math.pow(1024, index);
+  return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+}
+
+function AttachmentTray({ attachments, color }: { attachments: Attachment[]; color: string }) {
+  return (
+    <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+      {attachments.map((attachment) => (
+        <div
+          key={attachment.id}
+          className="rounded-lg overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: `1px solid ${color}20`,
+          }}
+        >
+          {attachment.previewUrl && attachment.type.startsWith('image/') ? (
+            <img
+              src={attachment.previewUrl}
+              alt={attachment.name}
+              className="w-full h-24 object-cover"
+            />
+          ) : (
+            <div
+              className="h-24 flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.02)' }}
+            >
+              <span
+                style={{
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '10px',
+                  color: 'rgba(255,255,255,0.45)',
+                }}
+              >
+                {attachment.type.startsWith('image/') ? 'IMAGE' : 'FILE'}
+              </span>
+            </div>
+          )}
+          <div className="px-2 py-1.5">
+            <div
+              className="truncate"
+              style={{
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: '9px',
+                color: 'rgba(255,255,255,0.6)',
+              }}
+            >
+              {attachment.name}
+            </div>
+            <div
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '10px',
+                color: 'rgba(255,255,255,0.35)',
+              }}
+            >
+              {formatBytes(attachment.size)}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export function MessageBubble({
@@ -429,9 +501,12 @@ export function MessageBubble({
   isThinking,
   securityMode,
   departmentColor = '#00F0FF',
+  attachments,
+  kind = 'default',
 }: MessageBubbleProps) {
   const isCommander = type === 'commander';
   const beamColor = securityMode ? '#FF2A4B' : departmentColor;
+  const isAnalysis = !isCommander && kind === 'analysis';
 
   if (isThinking && !isCommander) {
     return (
@@ -494,6 +569,9 @@ export function MessageBubble({
                 </motion.div>
               </div>
             </motion.div>
+            {attachments && attachments.length > 0 && (
+              <AttachmentTray attachments={attachments} color={beamColor} />
+            )}
             <div
               className="mt-1.5 text-right"
               style={{
@@ -532,7 +610,33 @@ export function MessageBubble({
               </motion.div>
 
               {/* Content */}
-              <div className="py-1 pl-1">
+              <div
+                className="py-1 pl-1"
+                style={
+                  isAnalysis
+                    ? {
+                        background: `${beamColor}08`,
+                        border: `1px solid ${beamColor}20`,
+                        borderRadius: '12px',
+                        padding: '10px 12px',
+                      }
+                    : undefined
+                }
+              >
+                {isAnalysis && (
+                  <div
+                    className="mb-2 inline-flex items-center px-2 py-0.5 rounded"
+                    style={{
+                      fontFamily: 'JetBrains Mono, monospace',
+                      fontSize: '9px',
+                      color: beamColor,
+                      background: `${beamColor}18`,
+                      letterSpacing: '0.08em',
+                    }}
+                  >
+                    ANALYSIS
+                  </div>
+                )}
                 {parts!.map((part, i) => {
                   if (part.type === 'code') {
                     return (
