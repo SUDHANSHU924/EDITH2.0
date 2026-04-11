@@ -81,12 +81,17 @@ export default function App() {
 
   // Check backend health on load
   useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    console.log('🔗 EDITH API URL:', apiUrl)
+    
     checkHealth().then(online => {
       if (online) {
         console.log('✓ EDITH backend connected')
       } else {
-        console.warn('⚠ EDITH backend offline')
+        console.warn('⚠ EDITH backend offline - trying:', apiUrl)
       }
+    }).catch(err => {
+      console.error('❌ Backend connection error:', err.message)
     })
   }, [])
 
