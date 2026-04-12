@@ -1,4 +1,6 @@
 from pydantic_settings import BaseSettings
+import os
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -40,7 +42,8 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     class Config:
-        env_file = ".env"
+        # Use absolute path to ensure .env file is found regardless of cwd
+        env_file = str(Path(__file__).parent.parent / ".env")
 
 
 settings = Settings()

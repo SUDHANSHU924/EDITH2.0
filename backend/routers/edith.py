@@ -147,9 +147,9 @@ async def stream_response(
     model = config["model"]
     api_key_env = config["nvidia_api_key_env"]
     
-    # Get the department-specific NVIDIA API key
-    api_key = os.getenv(api_key_env, "")
-    base_url = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    # Get the department-specific NVIDIA API key from settings
+    api_key = getattr(settings, api_key_env, "")
+    base_url = settings.NVIDIA_BASE_URL
     
     # Build message history
     messages = [{"role": "system", "content": system_prompt}]
