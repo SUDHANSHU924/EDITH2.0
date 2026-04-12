@@ -2,12 +2,15 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Sparkles, Send, ChevronUp, ChevronDown, Paperclip, Camera, X } from 'lucide-react';
+import { Mic, Sparkles, Send, ChevronUp, ChevronDown, Paperclip, Camera, X, Volume2, VolumeX, Loader } from 'lucide-react';
 import { DEPARTMENT_COMMANDS, type DepartmentId } from '../departments';
 import type { Attachment } from '@/types/message.types';
+import { useVoice } from '../hooks/useVoice';
+import { useChatStore } from '@/store/chatStore';
 
 interface CommandInputProps {
   onSendMessage: (message: string, attachments?: Attachment[]) => void;
+  onDepartmentChange: (dept: DepartmentId) => void;
   securityMode: boolean;
   activeDepartment: DepartmentId;
   departmentColor: string;
@@ -23,20 +26,9 @@ const formatBytes = (bytes: number) => {
   return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
 };
 
-type SpeechRecognitionLike = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start: () => void;
-  stop: () => void;
-  onresult: ((event: any) => void) | null;
-  onerror: ((event: any) => void) | null;
-  onend: (() => void) | null;
-  onstart: (() => void) | null;
-};
-
 export function CommandInput({
   onSendMessage,
+  onDepartmentChange,
   securityMode,
   activeDepartment,
   departmentColor,
@@ -44,23 +36,75 @@ export function CommandInput({
   const [input, setInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [showEnhanceMenu, setShowEnhanceMenu] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [micError, setMicError] = useState<string | null>(null);
+  const [autoSpeak, setAutoSpeak] = useState(false);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const attachmentsRef = useRef<Attachment[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  const {
+    isRecording,
+    isTranscribing,
+    startRecording,
+    stopRecording,
+    speak,
+    transcript,
+    clearTranscript,
+    error: voiceError,
+  } = useVoice();
+  const chatMessages = useChatStore((state) => state.getMessages(activeDepartment));
+  const lastSpokenRef = useRef<number | null>(null);
+
   const color = departmentColor;
   const commands = DEPARTMENT_COMMANDS[activeDepartment] || [];
+
+  const resolveVoiceDepartment = (text: string): DepartmentId | null => {
+    const normalized = text.toLowerCase();
+    const match = normalized.match(
+      /(switch to|activate|open|go to|use|set department|department)\s+(core|planning|agent hub|code|code forge|files|file vault|search|learning|ml|data lab|iot|vision|voice|personal|security|daily|hacker|security grid|satellite)/
+    );
+    if (!match) return null;
+
+    const raw = match[2];
+    const map: Record<string, DepartmentId> = {
+      core: 'core',
+      planning: 'planning',
+      'agent hub': 'planning',
+      code: 'code',
+      'code forge': 'code',
+      files: 'files',
+      'file vault': 'files',
+      search: 'search',
+      learning: 'learning',
+      ml: 'ml',
+      'data lab': 'ml',
+      iot: 'iot',
+      vision: 'vision',
+      voice: 'voice',
+      personal: 'personal',
+      security: 'security',
+      daily: 'daily',
+      hacker: 'security_grid',
+      'security grid': 'security_grid',
+      satellite: 'satellite',
+    };
+    return map[raw] || null;
+  };
+
+  const stripVoiceDepartmentPrefix = (text: string): string => {
+    const cleaned = text.replace(
+      /(switch to|activate|open|go to|use|set department|department)\s+(core|planning|agent hub|code|code forge|files|file vault|search|learning|ml|data lab|iot|vision|voice|personal|security|daily|hacker|security grid|satellite)/i,
+      ''
+    );
+    return cleaned.trim();
+  };
 
   // Reset suggestions visibility on department change
   useEffect(() => {
@@ -74,42 +118,15 @@ export function CommandInput({
   }, [attachments]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const SpeechRecognitionCtor =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognitionCtor) {
-      setMicError('mic unsupported');
-      return;
-    }
+    if (!autoSpeak) return;
+    if (!chatMessages?.length) return;
+    const latest = [...chatMessages].reverse().find((msg) => msg.role === 'assistant' && !msg.isStreaming);
+    if (!latest) return;
+    if (latest.id === lastSpokenRef.current) return;
+    lastSpokenRef.current = latest.id;
+    speak(latest.content);
+  }, [autoSpeak, chatMessages, speak]);
 
-    const recognition: SpeechRecognitionLike = new SpeechRecognitionCtor();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-    recognition.onresult = (event: any) => {
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          finalTranscript += result[0].transcript;
-        }
-      }
-      if (finalTranscript) {
-        setInput((prev) => (prev ? `${prev} ${finalTranscript.trim()}` : finalTranscript.trim()));
-      }
-    };
-    recognition.onerror = (event: any) => {
-      setMicError(event?.error || 'mic error');
-      setIsListening(false);
-    };
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognitionRef.current = recognition;
-
-    return () => {
-      recognition.stop();
-    };
-  }, []);
 
   useEffect(() => () => {
     attachmentsRef.current.forEach((attachment) => {
@@ -163,9 +180,6 @@ export function CommandInput({
 
   const handleSubmit = () => {
     if (input.trim() || attachments.length) {
-      if (isListening) {
-        recognitionRef.current?.stop();
-      }
       onSendMessage(input.trim(), attachments.length ? attachments : undefined);
       setInput('');
       attachments.forEach((attachment) => {
@@ -196,24 +210,6 @@ export function CommandInput({
     inputRef.current?.focus();
   };
 
-  const toggleListening = () => {
-    const recognition = recognitionRef.current;
-    if (!recognition) {
-      setMicError('mic unsupported');
-      return;
-    }
-    setMicError(null);
-    if (isListening) {
-      recognition.stop();
-      return;
-    }
-    try {
-      recognition.start();
-    } catch {
-      setMicError('mic busy');
-      setIsListening(false);
-    }
-  };
 
   const addFiles = (files: File[], source: 'camera' | 'file') => {
     const next: Attachment[] = [];
@@ -373,25 +369,106 @@ export function CommandInput({
             }}
           />
 
+          {(isRecording || isTranscribing || transcript) && (
+            <div className="px-3 pt-2 pb-1 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '10px',
+                    color: isRecording ? '#FF2A4B' : color,
+                    letterSpacing: '0.12em',
+                  }}
+                >
+                  VOICE PREVIEW
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '12px',
+                    color: 'rgba(255,255,255,0.7)',
+                  }}
+                >
+                  {isTranscribing
+                    ? 'Transcribing...'
+                    : isRecording
+                      ? 'Listening...'
+                      : transcript || ''}
+                </span>
+              </div>
+              {transcript && !isRecording && !isTranscribing && (
+                <button
+                  onClick={clearTranscript}
+                  className="text-[10px] uppercase"
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    color: 'rgba(255,255,255,0.35)',
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
+
           <div className="flex items-end gap-3 p-3">
             {/* Input Utilities */}
             <div className="flex items-end gap-2">
               <motion.button
                 className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center relative"
                 style={{
-                  background: isListening
-                    ? `${color}25`
+                  background: isRecording
+                    ? 'rgba(255,42,75,0.12)'
                     : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${isListening ? color + '50' : 'rgba(255,255,255,0.08)'}`,
+                  border: `1px solid ${isRecording ? '#FF2A4B' : 'rgba(255,255,255,0.08)'}`,
                 }}
                 whileHover={{ scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
-                onClick={toggleListening}
-                title={micError ? micError : 'Voice input'}
+                onMouseDown={startRecording}
+                onMouseUp={async () => {
+                  const text = await stopRecording();
+                  const trimmed = text.trim();
+                  if (trimmed) {
+                    const nextDept = resolveVoiceDepartment(trimmed);
+                    if (nextDept && nextDept !== activeDepartment) {
+                      onDepartmentChange(nextDept);
+                    }
+                    const payload = nextDept ? stripVoiceDepartmentPrefix(trimmed) : trimmed;
+                    if (payload) {
+                      onSendMessage(payload);
+                    }
+                    clearTranscript();
+                  }
+                }}
+                onTouchStart={(event) => {
+                  event.preventDefault();
+                  startRecording();
+                }}
+                onTouchEnd={async (event) => {
+                  event.preventDefault();
+                  const text = await stopRecording();
+                  const trimmed = text.trim();
+                  if (trimmed) {
+                    const nextDept = resolveVoiceDepartment(trimmed);
+                    if (nextDept && nextDept !== activeDepartment) {
+                      onDepartmentChange(nextDept);
+                    }
+                    const payload = nextDept ? stripVoiceDepartmentPrefix(trimmed) : trimmed;
+                    if (payload) {
+                      onSendMessage(payload);
+                    }
+                    clearTranscript();
+                  }
+                }}
+                title={voiceError || (isRecording ? 'Release to send' : 'Hold to speak')}
               >
-                <Mic size={16} style={{ color: isListening ? color : 'rgba(255,255,255,0.5)' }} />
+                {isTranscribing ? (
+                  <Loader size={16} style={{ color: color }} />
+                ) : (
+                  <Mic size={16} style={{ color: isRecording ? '#FF2A4B' : 'rgba(255,255,255,0.5)' }} />
+                )}
                 <AnimatePresence>
-                  {isListening && (
+                  {isRecording && (
                     <motion.div
                       className="absolute inset-0 rounded-xl flex items-center justify-center gap-0.5"
                       initial={{ opacity: 0 }}
@@ -402,7 +479,7 @@ export function CommandInput({
                         <motion.div
                           key={i}
                           className="w-0.5 rounded-full"
-                          style={{ background: color }}
+                          style={{ background: '#FF2A4B' }}
                           animate={{ height: ['3px', '14px', '3px'] }}
                           transition={{ duration: 0.55, repeat: Infinity, delay: i * 0.1 }}
                         />
@@ -438,6 +515,24 @@ export function CommandInput({
                 title="Attach files"
               >
                 <Paperclip size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+              </motion.button>
+
+              <motion.button
+                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{
+                  background: autoSpeak ? `${color}20` : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${autoSpeak ? color + '50' : 'rgba(255,255,255,0.08)'}`,
+                }}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setAutoSpeak((prev) => !prev)}
+                title={autoSpeak ? 'Auto speak on' : 'Auto speak off'}
+              >
+                {autoSpeak ? (
+                  <Volume2 size={16} style={{ color }} />
+                ) : (
+                  <VolumeX size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                )}
               </motion.button>
             </div>
 
@@ -587,7 +682,13 @@ export function CommandInput({
               className="text-xs"
               style={{ fontFamily: 'JetBrains Mono, monospace', color: 'rgba(255,255,255,0.25)', fontSize: '9px' }}
             >
-              {micError ? `MIC ${micError}` : isListening ? 'MIC LISTENING' : 'MIC READY'}
+              {voiceError
+                ? `VOICE ${voiceError}`
+                : isTranscribing
+                  ? 'VOICE TRANSCRIBING'
+                  : isRecording
+                    ? 'VOICE LISTENING'
+                    : 'VOICE READY'}
               {attachments.length ? ` · ${attachments.length} FILE` : ''}
               {attachments.length > 1 ? 'S' : ''}
               {attachmentError ? ` · ${attachmentError}` : ''}

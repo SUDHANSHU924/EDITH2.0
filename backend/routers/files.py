@@ -1,10 +1,13 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List
 from io import BytesIO
 from pypdf import PdfReader
 from groq import AsyncGroq
 from core.config import settings
+import os
+import tempfile
 
 router = APIRouter()
 
@@ -106,6 +109,18 @@ class FileRequest(BaseModel):
     content: str
     filename: str = "document"
 
+
+class PPTRequest(BaseModel):
+    title: str
+    slides: List[dict]
+    theme: str = "dark"
+
+
+class DocRequest(BaseModel):
+    title: str
+    content: str
+    format: str = "docx"
+
 @router.post("/create")
 async def create(req: FileRequest):
     return {
@@ -113,6 +128,87 @@ async def create(req: FileRequest):
         "system": "04 - File Vault",
         "type": req.type,
         "message": f"File {req.filename}.{req.type} ready"
+    }
+
+
+@router.post("/create-ppt")
+async def create_ppt(request: PPTRequest):
+    """Generate PowerPoint from EDITH"""
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    from pptx.dml.color import RGBColor
+
+    prs = Presentation()
+    prs.slide_width = Inches(16)
+    prs.slide_height = Inches(9)
+
+    for slide_data in request.slides:
+        slide_layout = prs.slide_layouts[1]
+        slide = prs.slides.add_slide(slide_layout)
+
+        background = slide.background
+        fill = background.fill
+        fill.solid()
+        fill.fore_color.rgb = RGBColor(5, 5, 5)
+
+        title_shape = slide.shapes.title
+        if title_shape and slide_data.get("title"):
+            title_shape.text = slide_data["title"]
+            title_shape.text_frame.paragraphs[0].runs[0].font.color.rgb = RGBColor(0, 240, 255)
+            title_shape.text_frame.paragraphs[0].runs[0].font.size = Pt(36)
+
+        if len(slide.placeholders) > 1:
+            body = slide.placeholders[1]
+            tf = body.text_frame
+            for point in slide_data.get("points", []):
+                p = tf.add_paragraph()
+                p.text = point
+                p.font.color.rgb = RGBColor(255, 255, 255)
+                p.font.size = Pt(20)
+
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pptx")
+    prs.save(tmp.name)
+
+    return FileResponse(
+        tmp.name,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        filename=f"{request.title}.pptx",
+    )
+
+
+@router.post("/generate")
+async def generate_file(request: DocRequest):
+    """AI-powered file generation"""
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    if not groq_key:
+        return {"error": "Add GROQ_API_KEY"}
+
+    from groq import Groq
+
+    client = Groq(api_key=groq_key)
+
+    prompt = (
+        f"Create a complete {request.format} document about: {request.title}\n\n"
+        f"Content requirements: {request.content}\n\n"
+        "Return structured content in JSON format:\n"
+        "{\n"
+        "    \"title\": \"...\",\n"
+        "    \"sections\": [\n"
+        "        {\"heading\": \"...\", \"content\": \"...\"}\n"
+        "    ]\n"
+        "}"
+    )
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=2048,
+    )
+
+    return {
+        "status": "ok",
+        "content": response.choices[0].message.content,
+        "format": request.format,
     }
 
 

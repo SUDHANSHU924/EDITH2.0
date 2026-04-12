@@ -541,6 +541,7 @@ export default function App() {
         <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px', zIndex: 20 }}>
           <CommandInput
             onSendMessage={handleSendMessage}
+            onDepartmentChange={handleDepartmentChange}
             securityMode={securityMode}
             activeDepartment={activeDepartment}
             departmentColor={accentColor}

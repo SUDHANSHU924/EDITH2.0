@@ -7,7 +7,7 @@ from core.config import settings
 from core.logging import configure_logging
 from routers import (
     edith, search, code, vision, voice, memory, hacker, satellite,
-    planning, files, learning, ml, iot, personal, security, daily
+    planning, files, learning, ml, iot, personal, security, daily, whatsapp
 )
 from ws_handlers.handler import websocket_endpoint
 
@@ -43,6 +43,7 @@ app.include_router(security.router, prefix="/api/security")
 app.include_router(daily.router, prefix="/api/daily")
 app.include_router(hacker.router, prefix="/api/hacker")
 app.include_router(satellite.router, prefix="/api/satellite")
+app.include_router(whatsapp.router, prefix="/api/whatsapp")
 
 
 @app.websocket("/ws/{session_id}")
@@ -53,6 +54,15 @@ async def websocket_route(websocket: WebSocket, session_id: str):
 @app.get("/health")
 async def health():
     return {"status": "EDITH ONLINE", "version": "2.0.0", "systems": 15}
+
+
+@app.post("/api/agent/run")
+async def run_agent(request: dict):
+    from agents.master_agent import edith_agent
+
+    task = request.get("task", "")
+    result = await edith_agent.run(task)
+    return {"result": result, "agent": "EDITH MASTER"}
 
 
 if __name__ == "__main__":
