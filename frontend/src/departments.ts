@@ -6,10 +6,10 @@ import {
 import type { LucideIcon } from 'lucide-react';
 
 export type DepartmentId =
-  | 'core' | 'code' | 'agent' | 'search'
-  | 'data' | 'vision' | 'files' | 'security'
-  | 'voice' | 'personal' | 'iot' | 'learn'
-  | 'daily' | 'hacker' | 'satellite';
+  | 'core' | 'code' | 'planning' | 'search'
+  | 'ml' | 'vision' | 'files' | 'security'
+  | 'voice' | 'personal' | 'iot' | 'learning'
+  | 'daily' | 'security_grid' | 'satellite';
 
 export interface Department {
   id: DepartmentId;
@@ -33,7 +33,7 @@ export const DEPARTMENTS: Department[] = [
     icon: Cpu,
   },
   {
-    id: 'agent',
+    id: 'planning',
     label: 'AGENT HUB',
     shortLabel: 'AGENT',
     subtitle: 'Agentic Reasoning',
@@ -69,7 +69,7 @@ export const DEPARTMENTS: Department[] = [
     icon: Globe,
   },
   {
-    id: 'learn',
+    id: 'learning',
     label: 'SELF-LEARN',
     shortLabel: 'LEARN',
     subtitle: 'Knowledge Engine',
@@ -78,7 +78,7 @@ export const DEPARTMENTS: Department[] = [
     icon: Zap,
   },
   {
-    id: 'data',
+    id: 'ml',
     label: 'DATA LAB',
     shortLabel: 'DATA',
     subtitle: 'Data Science & ML',
@@ -142,7 +142,7 @@ export const DEPARTMENTS: Department[] = [
     icon: Calendar,
   },
   {
-    id: 'hacker',
+    id: 'security_grid',
     label: 'HACKER GRID',
     shortLabel: 'HACK',
     subtitle: 'Offensive Security',
@@ -163,37 +163,37 @@ export const DEPARTMENTS: Department[] = [
 
 export const DEPARTMENT_WELCOMES: Record<DepartmentId, string> = {
   core: 'EDITH CORE active. Conversational intelligence fully engaged. Multi-turn context retention online. Natural language understanding at 99.4% fidelity. How may I serve, Commander?',
-  agent: 'AGENT HUB engaged. Autonomous planning engine initialized. Tree-of-Thought reasoning active. ReAct loop standing by. Ready to decompose and execute any complex objective.',
+  planning: 'AGENT HUB engaged. Autonomous planning engine initialized. Tree-of-Thought reasoning active. ReAct loop standing by. Ready to decompose and execute any complex objective.',
   code: 'CODE FORGE online. Full-stack engineering suite loaded. Python 3.11, TypeScript, Rust, Go, and 15+ languages ready. Security code review active. What shall we build?',
   files: 'FILE VAULT open. Document engineering suite loaded. 12 file format templates on standby — source code, reports, configs, Dockerfiles. What shall I create?',
   search: 'DEEP SEARCH active. Real-time web intelligence online. Multi-source synthesis ready. Source credibility filter set to HIGH. What intelligence do you require?',
-  learn: 'SELF-LEARN engine activated. Knowledge indexing in progress. Pattern recognition online. Technology scouting initiated. Monitoring for corrections and updates.',
-  data: 'DATA LAB initialized. ML pipeline frameworks loaded. PyTorch, Scikit-learn, Hugging Face TRL standing by. EDA, model training, and deployment pipelines ready.',
+  learning: 'SELF-LEARN engine activated. Knowledge indexing in progress. Pattern recognition online. Technology scouting initiated. Monitoring for corrections and updates.',
+  ml: 'DATA LAB initialized. ML pipeline frameworks loaded. PyTorch, Scikit-learn, Hugging Face TRL standing by. EDA, model training, and deployment pipelines ready.',
   iot: 'IoT CONTROL hub connected. Smart home protocols loaded. Zigbee, Z-Wave, Matter, MQTT support active. 0 devices detected — connect your network to begin.',
   vision: 'VISION LENS powered up. Multimodal analysis engine online. OCR, diagram interpretation, chart reading, and image analysis ready. Submit your visual data.',
   voice: 'VOICE OPS online. ASR and TTS engines primed. Whisper multilingual model loaded. Wake-word detection armed. Push-to-talk latency: 34ms. Ready.',
   personal: 'PERSONALIZATION ENGINE engaged. Commander profile analysis running. Adaptive response calibration active. Expertise level: detecting. Preference modeling initialized.',
   security: 'SECURITY GRID primed. Ethical hacker protocols loaded. OWASP Top 10 scanner active. CVE database synced. Vulnerability analysis ready. Awaiting your security directive.',
   daily: 'DAILY OPS online. Scheduling, summaries, and routines ready. What should I handle first?',
-  hacker: 'HACKER GRID online. Authorized testing only. Provide scope, target, and approval.',
+  security_grid: 'HACKER GRID online. Authorized testing only. Provide scope, target, and approval.',
   satellite: 'SATELLITE INTEL online. Tracking, imagery, and telemetry tools ready. Provide target and timeframe.',
 };
 
 export const DEPARTMENT_COMMANDS: Record<DepartmentId, string[]> = {
   core: ['Summarize our conversation', 'Translate to Spanish', 'Clarify this concept', 'Ask me a question'],
-  agent: ['Plan a project for me', 'Decompose into tasks', 'Execute autonomously', 'Spawn sub-agents'],
+  planning: ['Plan a project for me', 'Decompose into tasks', 'Execute autonomously', 'Spawn sub-agents'],
   code: ['Review this code', 'Debug this error', 'Generate unit tests', 'Write a REST API'],
   files: ['Create a Python script', 'Generate a Dockerfile', 'Write a config file', 'Build a markdown report'],
   search: ['Research this topic', 'Find latest AI papers', 'Compare these options', 'Verify this claim'],
-  learn: ['What patterns have you noticed?', 'Scout new technologies', 'Index this knowledge', 'Review my corrections'],
-  data: ['Run EDA on my dataset', 'Train a classifier', 'Generate ML pipeline', 'Visualize this data'],
+  learning: ['What patterns have you noticed?', 'Scout new technologies', 'Index this knowledge', 'Review my corrections'],
+  ml: ['Run EDA on my dataset', 'Train a classifier', 'Generate ML pipeline', 'Visualize this data'],
   iot: ['Control my devices', 'Create automation routine', 'Check device status', 'Generate Home Assistant YAML'],
   vision: ['Analyze this image', 'Extract text from image', 'Interpret this diagram', 'Review this UI screenshot'],
   voice: ['Configure voice settings', 'Test TTS output', 'Set wake word', 'Enable push-to-talk'],
   personal: ['Update my preferences', 'Calibrate expertise level', 'Set response style', 'Build my Commander profile'],
   security: ['Scan for vulnerabilities', 'Pen test this endpoint', 'OWASP audit', 'Generate threat model'],
   daily: ['Build today\'s plan', 'Check weather', 'Summarize my tasks', 'Draft a daily report'],
-  hacker: ['Run vulnerability scan', 'CVE lookup', 'OSINT sweep', 'Generate pentest report'],
+  security_grid: ['Run vulnerability scan', 'CVE lookup', 'OSINT sweep', 'Generate pentest report'],
   satellite: ['Track a satellite', 'Predict pass window', 'Fetch imagery', 'Analyze orbital data'],
 };
 
@@ -204,7 +204,7 @@ export const AI_RESPONSES: Record<DepartmentId, string[]> = {
     'Directive received and processed. I have cross-referenced this against 14,000+ data points. Confidence level: 97.3%. Three actionable pathways identified. Awaiting your authorization.',
     'Understood, Commander. I have indexed all relevant knowledge domains and synthesized a comprehensive action plan. Ambiguity resolved. Standing by for your next instruction.',
   ],
-  agent: [
+  planning: [
     'Objective decomposed into 4 subtasks. Parallel execution initiated:\n→ [T1] Research phase: 2 min\n→ [T2] Analysis & synthesis: 3 min\n→ [T3] Quality review: 1 min\n→ [T4] Final delivery: 30 sec\n\nTree-of-Thought: 7 branches evaluated, optimal path selected. No blockers detected.',
     'Multi-agent delegation complete. Research sub-agent returned 12 verified sources. Code sub-agent generated 3 implementation options. Synthesis agent ranked them by efficiency. Presenting optimal output.',
     'ReAct loop iteration 3 of 5 complete. Current confidence: 82%. Two additional reasoning cycles required for full certainty. Proceeding autonomously — will surface results when confidence exceeds 95%.',
@@ -228,7 +228,7 @@ export const AI_RESPONSES: Record<DepartmentId, string[]> = {
     'Competitive analysis complete. Market data from 6 sources. Pricing current as of today. Feature matrix built for 5 competitors. Strategic insight: 2 market gaps identified. Full report ready.',
     'Research paper analysis complete. 3 relevant ArXiv papers found. Key findings extracted. Technical jargon translated. Practical implications summarized. Bibtex citations generated.',
   ],
-  data: [
+  ml: [
     'EDA complete.\nDataset: 50,000 samples | 24 features | 0 duplicates\nMissing values: 2.3% — imputation strategy recommended\nOutliers: 0.8% (IQR method) — flagged for review\nTop 5 predictive features identified via mutual information\nCorrelation matrix computed — 3 multicollinear pairs detected\n\nReady for feature engineering phase.',
     'Model training complete.\nRandom Forest: 94.2% accuracy | F1: 0.921\nXGBoost: 96.1% accuracy | F1: 0.934 ← RECOMMENDED\nNeural Net: 95.8% accuracy | F1: 0.928\n\nCross-validation (5-fold) confirms XGBoost. SHAP values computed for explainability. No data leakage detected.',
     'ML pipeline built end-to-end:\n→ Data ingestion & cleaning\n→ Feature engineering (15 new features)\n→ Model training & hyperparameter tuning (Optuna)\n→ Evaluation with 7 metrics\n→ FastAPI deployment endpoint\n→ Weights & Biases tracking initialized\n\nPipeline runs in 4.2 minutes on standard hardware.',
@@ -258,7 +258,7 @@ export const AI_RESPONSES: Record<DepartmentId, string[]> = {
     'IoT network scan complete.\n14 devices online | 2 devices offline (bedroom sensor, garage opener)\nEnergy today: 4.2 kWh (23% below 7-day average)\nAnomaly: Back door sensor offline since 14:30 — recommend check\nOptimization: 3 devices moved to standby mode — saving ~0.8 kWh/day.',
     'Smart home scene "Deep Work Mode" created:\n→ Office lights: 100% cool white\n→ Thermostat: 68°F\n→ All notifications: silenced for 2 hours\n→ Do Not Disturb: all devices\nActivate via: voice command or tap below.',
   ],
-  learn: [
+  learning: [
     'Knowledge update processed. 3 new technology patterns indexed from this session. Emerging framework detected: relevance to your stack — 8.7/10. Proactive briefing queued. Commander preference profile updated.',
     'Learning from your correction. Behavior updated immediately: you prefer detailed inline code comments over separate documentation. Pattern recognized across 7 similar corrections this session. Adaptation permanent for this session.',
     'Technology scouting complete. 4 new arXiv papers analyzed. 2 Hugging Face model releases relevant to your ML stack. 1 critical CVE in your dependency tree detected. Summary briefing generated.',
@@ -275,7 +275,7 @@ export const AI_RESPONSES: Record<DepartmentId, string[]> = {
     'Schedule drafted with buffers and reminders. Confirm timing or add constraints.',
     'Daily report generated with highlights, blockers, and next actions.',
   ],
-  hacker: [
+  security_grid: [
     'Scope confirmed. Running authorized checks only. Results will include risk ratings and remediation.',
     'Recon complete. Attack surface mapped and prioritized. Awaiting next directive.',
     'Report assembled with findings, CVSS scoring, and fixes. Ready for review.',

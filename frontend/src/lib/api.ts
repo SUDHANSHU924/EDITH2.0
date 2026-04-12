@@ -15,7 +15,7 @@ export type BackendSystem =
   | "personal"
   | "security"
   | "daily"
-  | "hacker"
+  | "security_grid"
   | "satellite";
 
 type ChatMessage = {
@@ -28,6 +28,7 @@ type ChatRequest = {
   session_id: string;
   system_id: number;
   department: string;
+  history: ChatMessage[];
 };
 
 const resolveDefaultApiUrl = () => {
@@ -50,19 +51,19 @@ const buildUrl = (path: string) => {
 
 const DEPARTMENT_TO_BACKEND: Record<DepartmentId, string> = {
   core: "core",
-  agent: "planning",
+  planning: "planning",
   code: "code",
   files: "files",
   search: "search",
-  learn: "learning",
-  data: "ml",
+  learning: "learning",
+  ml: "ml",
   iot: "iot",
   vision: "vision",
   voice: "voice",
   personal: "personal",
   security: "security",
   daily: "daily",
-  hacker: "hacker",
+  security_grid: "security_grid",
   satellite: "satellite",
 };
 
@@ -95,12 +96,13 @@ export const sendToEDITH = async (
   history?: ChatMessage[]
 ): Promise<ReadableStream<Uint8Array> | null> => {
   const userMessage: ChatMessage = { role: "user", content };
-  const messages = history?.length ? history : [userMessage];
+  const messages = [userMessage];
   const payload: ChatRequest = {
     messages,
     session_id: sessionId,
     system_id: 1,
     department: resolveDepartment(department),
+    history: history || [],
   };
 
   let response: Response;

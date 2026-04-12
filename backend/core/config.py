@@ -2,13 +2,27 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    NVIDIA_API_KEY: str = ""
+    # NVIDIA API Configuration
     NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
-    NVIDIA_MODEL_MAIN: str = "deepseek-ai/deepseek-r1"
-    NVIDIA_MODEL_CODE: str = "deepseek-ai/deepseek-coder-v2"
-    GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
-    GROQ_VISION_MODEL: str = "llama-3.2-11b-vision-preview"
+    
+    # Department-Specific NVIDIA API Keys
+    NVIDIA_CORE_API_KEY: str = ""
+    NVIDIA_PLANNING_API_KEY: str = ""
+    NVIDIA_CODE_API_KEY: str = ""
+    NVIDIA_FILES_API_KEY: str = ""
+    NVIDIA_SEARCH_API_KEY: str = ""
+    NVIDIA_LEARNING_API_KEY: str = ""
+    NVIDIA_ML_API_KEY: str = ""
+    NVIDIA_IOT_API_KEY: str = ""
+    NVIDIA_VISION_API_KEY: str = ""
+    NVIDIA_VOICE_API_KEY: str = ""
+    NVIDIA_PERSONAL_API_KEY: str = ""
+    NVIDIA_SECURITY_API_KEY: str = ""
+    NVIDIA_DAILY_API_KEY: str = ""
+    NVIDIA_SECURITY_GRID_API_KEY: str = ""
+    NVIDIA_SATELLITE_API_KEY: str = ""
+
+    # Optional Services
     HUGGINGFACE_API_KEY: str = ""
 
     TAVILY_API_KEY: str = ""
