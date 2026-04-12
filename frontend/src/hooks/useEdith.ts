@@ -69,6 +69,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
         }));
 
       setThinking(true);
+      let assistantId: number | null = null;
 
       try {
         const attachmentNote = buildAttachmentNote(attachments);
@@ -167,12 +168,13 @@ export function useEdith(sessionId: string = "default", department: string = "co
           }
         }
 
-        const assistantId = addMessage({
+        const streamMessageId = addMessage({
           role: "assistant",
           content: "",
           timestamp: new Date().toISOString(),
           isStreaming: true,
         });
+        assistantId = streamMessageId;
 
         const analysisContext = analysisNotes.length ? analysisNotes.join("") : "";
         const payloadContent = displayContent + attachmentNote + analysisContext;
@@ -184,17 +186,22 @@ export function useEdith(sessionId: string = "default", department: string = "co
         );
         
         if (!stream) {
-          throw new Error("Failed to connect to EDITH");
+          updateMessage(streamMessageId, {
+            content: "EDITH backend unavailable.",
+            isStreaming: false,
+          });
+          setThinking(false);
+          return;
         }
 
         await streamEdithResponse(new Response(stream), {
-          onToken: (token) => appendToMessage(assistantId, token),
+          onToken: (token) => appendToMessage(streamMessageId, token),
           onDone: () => {
-            updateMessage(assistantId, { isStreaming: false });
+            updateMessage(streamMessageId, { isStreaming: false });
             setThinking(false);
           },
           onError: () => {
-            updateMessage(assistantId, {
+            updateMessage(streamMessageId, {
               content: "Signal lost. Re-establish and retry.",
               isStreaming: false,
             });
@@ -203,10 +210,19 @@ export function useEdith(sessionId: string = "default", department: string = "co
         });
       } catch (error) {
         console.error("useEdith error:", error);
-        updateMessage(assistantId, {
-          content: "EDITH backend unavailable.",
-          isStreaming: false,
-        });
+        if (assistantId === null) {
+          addMessage({
+            role: "assistant",
+            content: "EDITH backend unavailable.",
+            timestamp: new Date().toISOString(),
+            isStreaming: false,
+          });
+        } else {
+          updateMessage(assistantId, {
+            content: "EDITH backend unavailable.",
+            isStreaming: false,
+          });
+        }
         setThinking(false);
       }
     },
