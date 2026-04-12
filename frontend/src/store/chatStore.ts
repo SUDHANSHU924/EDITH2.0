@@ -3,13 +3,16 @@ import { persist } from "zustand/middleware";
 import type { Attachment, Message } from "@/types/message.types";
 
 interface ChatStore {
-  messages: Message[];
+  messages: Record<string, Message[]>;
   isThinking: boolean;
-  addMessage: (msg: Omit<Message, "id"> & { id?: number }) => number;
-  updateMessage: (id: number, partial: Partial<Message>) => void;
-  appendToMessage: (id: number, delta: string) => void;
+  currentDepartment: string;
+  addMessage: (msg: Omit<Message, "id"> & { id?: number }, department?: string) => number;
+  updateMessage: (id: number, partial: Partial<Message>, department?: string) => void;
+  appendToMessage: (id: number, delta: string, department?: string) => void;
   setThinking: (v: boolean) => void;
-  clearMessages: () => void;
+  clearMessages: (department?: string) => void;
+  setCurrentDepartment: (dept: string) => void;
+  getMessages: (department: string) => Message[];
 }
 
 const createId = () => Date.now() + Math.floor(Math.random() * 1000);
@@ -25,50 +28,95 @@ const sanitizeAttachments = (attachments?: Attachment[]) =>
 
 export const useChatStore = create<ChatStore>()(
   persist(
-    (set) => ({
-      messages: [],
+    (set, get) => ({
+      messages: {},
       isThinking: false,
-      addMessage: (msg) => {
+      currentDepartment: "core",
+      setCurrentDepartment: (dept: string) => set({ currentDepartment: dept }),
+      addMessage: (msg, department = "core") => {
         const id = msg.id ?? createId();
-        set((state) => ({
-          messages: [...state.messages, { ...msg, id }],
-        }));
+        set((state) => {
+          const deptMessages = state.messages[department] || [];
+          return {
+            messages: {
+              ...state.messages,
+              [department]: [...deptMessages, { ...msg, id }],
+            },
+          };
+        });
         return id;
       },
-      updateMessage: (id, partial) =>
-        set((state) => ({
-          messages: state.messages.map((m) =>
-            m.id === id ? { ...m, ...partial } : m
-          ),
-        })),
-      appendToMessage: (id, delta) =>
-        set((state) => ({
-          messages: state.messages.map((m) =>
-            m.id === id ? { ...m, content: m.content + delta } : m
-          ),
-        })),
+      getMessages: (department: string) => {
+        return get().messages[department] || [];
+      },
+      updateMessage: (id, partial, department = "core") =>
+        set((state) => {
+          const deptMessages = state.messages[department] || [];
+          return {
+            messages: {
+              ...state.messages,
+              [department]: deptMessages.map((m) =>
+                m.id === id ? { ...m, ...partial } : m
+              ),
+            },
+          };
+        }),
+      appendToMessage: (id, delta, department = "core") =>
+        set((state) => {
+          const deptMessages = state.messages[department] || [];
+          return {
+            messages: {
+              ...state.messages,
+              [department]: deptMessages.map((m) =>
+                m.id === id ? { ...m, content: m.content + delta } : m
+              ),
+            },
+          };
+        }),
       setThinking: (v) => set({ isThinking: v }),
-      clearMessages: () => set({ messages: [] }),
+      clearMessages: (department?: string) =>
+        set((state) => {
+          if (department) {
+            return {
+              messages: {
+                ...state.messages,
+                [department]: [],
+              },
+            };
+          }
+          return { messages: {} };
+        }),
     }),
     {
       name: "edith-chat-store",
-      partialize: (state) => ({
-        messages: state.messages.map((message) =>
-          message.attachments
-            ? {
-                ...message,
-                attachments: sanitizeAttachments(message.attachments),
-              }
-            : message
-        ),
-      }),
+      partialize: (state) => {
+        const sanitizedMessages: Record<string, Message[]> = {};
+        for (const [dept, msgs] of Object.entries(state.messages)) {
+          sanitizedMessages[dept] = msgs.map((message) =>
+            message.attachments
+              ? {
+                  ...message,
+                  attachments: sanitizeAttachments(message.attachments),
+                }
+              : message
+          );
+        }
+        return {
+          messages: sanitizedMessages,
+          currentDepartment: state.currentDepartment,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         state.isThinking = false;
-        state.messages = state.messages.map((message) => ({
-          ...message,
-          isStreaming: false,
-        }));
+        const cleanedMessages: Record<string, Message[]> = {};
+        for (const [dept, msgs] of Object.entries(state.messages)) {
+          cleanedMessages[dept] = msgs.map((message) => ({
+            ...message,
+            isStreaming: false,
+          }));
+        }
+        state.messages = cleanedMessages;
       },
     }
   )

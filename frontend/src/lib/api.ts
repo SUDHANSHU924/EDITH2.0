@@ -142,7 +142,7 @@ const SYSTEM_STATUS_PATHS: Record<BackendSystem, string> = {
   personal: "/api/personal/status",
   security: "/api/security/status",
   daily: "/api/daily/status",
-  hacker: "/api/hacker/status",
+  security_grid: "/api/hacker/status",
   satellite: "/api/satellite/status",
 };
 

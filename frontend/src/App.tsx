@@ -46,13 +46,19 @@ const AUTONOMY_STAGES = [
 ];
 
 export default function App() {
-  const chatMessages = useChatStore((state) => state.messages);
   const [securityMode, setSecurityMode] = useState(false);
   const [showSecurityOverlay, setShowSecurityOverlay] = useState(false);
   const [activeDepartment, setActiveDepartment] = useState<DepartmentId>('core');
   const [autonomyStage, setAutonomyStage] = useState(1);
   const [showStageMenu, setShowStageMenu] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
+
+  // Get department-specific messages using zustand selector
+  const chatMessages = useChatStore((state) => 
+    state.getMessages ? state.getMessages(activeDepartment) : []
+  );
+  const setCurrentDepartmentInStore = useChatStore((state) => state.setCurrentDepartment);
+
   const { sendMessage, isThinking } = useEdith('commander-session', activeDepartment);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageScrollRef = useRef<HTMLDivElement>(null);
@@ -96,6 +102,11 @@ export default function App() {
     }
   }, [chatMessages, autoScroll]);
 
+  // Sync department changes with store
+  useEffect(() => {
+    setCurrentDepartmentInStore(activeDepartment);
+  }, [activeDepartment, setCurrentDepartmentInStore]);
+
   // Check backend health on load
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -130,12 +141,12 @@ export default function App() {
       return;
     }
     if (content.toLowerCase() === 'shutdown') {
-      useChatStore.getState().clearMessages();
+      useChatStore.getState().clearMessages(activeDepartment);
       useChatStore.getState().addMessage({
          role: 'assistant',
          content: '// STANDING BY — Commander Override Received.',
          timestamp: new Date().toISOString()
-      });
+      }, activeDepartment);
       return;
     }
 
@@ -166,7 +177,7 @@ export default function App() {
       role: 'assistant',
       content: '⚠️ Commander Override Protocol activated. All autonomous operations halted. Awaiting explicit directive.',
       timestamp: new Date().toISOString(),
-    });
+    }, 'core');
   };
 
   return (

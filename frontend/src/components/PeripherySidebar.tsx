@@ -792,19 +792,19 @@ export function PeripherySidebar({ securityMode, activeDepartment }: PeripherySi
     if (securityMode) return <SecurityPanel color="#FF2A4B" />;
     switch (activeDepartment) {
       case 'core':     return <CorePanel color={currentDept.color} />;
-      case 'agent':    return <AgentPanel color={currentDept.color} />;
+      case 'planning': return <AgentPanel color={currentDept.color} />;
       case 'code':     return <CodePanel color={currentDept.color} />;
       case 'files':    return <FilesPanel color={currentDept.color} />;
       case 'search':   return <SearchPanel color={currentDept.color} />;
-      case 'learn':    return <LearnPanel color={currentDept.color} />;
-      case 'data':     return <DataPanel color={currentDept.color} />;
+      case 'learning': return <LearnPanel color={currentDept.color} />;
+      case 'ml':       return <DataPanel color={currentDept.color} />;
       case 'iot':      return <IotPanel color={currentDept.color} />;
       case 'vision':   return <VisionPanel color={currentDept.color} />;
       case 'voice':    return <VoicePanel color={currentDept.color} />;
       case 'personal': return <PersonalPanel color={currentDept.color} />;
       case 'security': return <SecurityPanel color={currentDept.color} />;
       case 'daily':    return <DailyPanel color={currentDept.color} />;
-      case 'hacker':   return <HackerPanel color={currentDept.color} />;
+      case 'security_grid': return <HackerPanel color={currentDept.color} />;
       case 'satellite': return <SatellitePanel color={currentDept.color} />;
       default:         return <CorePanel color={currentDept.color} />;
     }

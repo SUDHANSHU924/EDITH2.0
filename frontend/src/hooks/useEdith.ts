@@ -47,19 +47,23 @@ export function useEdith(sessionId: string = "default", department: string = "co
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setThinking = useChatStore((state) => state.setThinking);
   const isThinking = useChatStore((state) => state.isThinking);
+  const setCurrentDepartment = useChatStore((state) => state.setCurrentDepartment);
 
   const sendMessage = useCallback(
     async (content: string, attachments?: Attachment[]) => {
       const trimmed = content.trim();
       if (!trimmed && !attachments?.length) return;
 
+      setCurrentDepartment(department);
+
       const timestamp = new Date().toISOString();
       const displayContent = trimmed || "Attached files.";
-      addMessage({ role: "user", content: displayContent, timestamp, attachments });
+      addMessage({ role: "user", content: displayContent, timestamp, attachments }, department);
 
       const history = useChatStore
         .getState()
-        .messages.filter(
+        .getMessages(department)
+        .filter(
           (message) => message.content && !message.isStreaming && message.kind !== "analysis"
         )
         .slice(-20)
@@ -89,7 +93,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
             content: "Analyzing images...",
             timestamp: new Date().toISOString(),
             kind: "analysis",
-          });
+          }, department);
         }
 
         let fileMessageId: number | null = null;
@@ -99,7 +103,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
             content: "Analyzing files...",
             timestamp: new Date().toISOString(),
             kind: "analysis",
-          });
+          }, department);
         }
 
         if (imageAttachments?.length) {
@@ -118,7 +122,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
                       "VISION ANALYSIS",
                       buildVisionSummary(visionResults)
                     ),
-                  });
+                  }, department);
                 }
               }
             } catch (error) {
@@ -129,7 +133,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
                   "VISION ANALYSIS",
                   "Unable to analyze images."
                 ),
-              });
+              }, department);
             }
             }
           }
@@ -155,7 +159,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
             if (fileMessageId !== null) {
               updateMessage(fileMessageId, {
                 content: buildAnalysisContent("FILE QA", fileSummary),
-              });
+              }, department);
             }
             analysisNotes.push(buildAnalysisNote("FILE QA", fileSummary));
           } catch (error) {
@@ -163,7 +167,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
             if (fileMessageId !== null) {
               updateMessage(fileMessageId, {
                 content: buildAnalysisContent("FILE QA", "Unable to analyze files."),
-              });
+              }, department);
             }
           }
         }
@@ -173,7 +177,7 @@ export function useEdith(sessionId: string = "default", department: string = "co
           content: "",
           timestamp: new Date().toISOString(),
           isStreaming: true,
-        });
+        }, department);
         assistantId = streamMessageId;
 
         const analysisContext = analysisNotes.length ? analysisNotes.join("") : "";
@@ -189,22 +193,22 @@ export function useEdith(sessionId: string = "default", department: string = "co
           updateMessage(streamMessageId, {
             content: "EDITH backend unavailable.",
             isStreaming: false,
-          });
+          }, department);
           setThinking(false);
           return;
         }
 
         await streamEdithResponse(new Response(stream), {
-          onToken: (token) => appendToMessage(streamMessageId, token),
+          onToken: (token) => appendToMessage(streamMessageId, token, department),
           onDone: () => {
-            updateMessage(streamMessageId, { isStreaming: false });
+            updateMessage(streamMessageId, { isStreaming: false }, department);
             setThinking(false);
           },
           onError: () => {
             updateMessage(streamMessageId, {
               content: "Signal lost. Re-establish and retry.",
               isStreaming: false,
-            });
+            }, department);
             setThinking(false);
           },
         });
@@ -216,17 +220,17 @@ export function useEdith(sessionId: string = "default", department: string = "co
             content: "EDITH backend unavailable.",
             timestamp: new Date().toISOString(),
             isStreaming: false,
-          });
+          }, department);
         } else {
           updateMessage(assistantId, {
             content: "EDITH backend unavailable.",
             isStreaming: false,
-          });
+          }, department);
         }
         setThinking(false);
       }
     },
-    [addMessage, appendToMessage, updateMessage, setThinking, sessionId, department]
+    [addMessage, appendToMessage, updateMessage, setThinking, sessionId, department, setCurrentDepartment]
   );
 
   return { sendMessage, isThinking };
