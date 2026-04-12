@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertOctagon, ChevronUp, ChevronDown } from 'lucide-react';
 import { BackgroundGrid } from './components/BackgroundGrid';
@@ -53,10 +53,14 @@ export default function App() {
   const [showStageMenu, setShowStageMenu] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
 
-  // Get department-specific messages using zustand selector
-  const chatMessages = useChatStore((state) => 
-    state.getMessages ? state.getMessages(activeDepartment) : []
-  );
+  // Access store directly to avoid infinite loop - memoize based on activeDepartment
+  const messages = useChatStore((state) => state.messages);
+  const getMessagesFunc = useChatStore((state) => state.getMessages);
+  const chatMessages = useMemo(() => {
+    if (!getMessagesFunc) return [];
+    return getMessagesFunc(activeDepartment);
+  }, [activeDepartment, messages, getMessagesFunc]);
+  
   const setCurrentDepartmentInStore = useChatStore((state) => state.setCurrentDepartment);
 
   const { sendMessage, isThinking } = useEdith('commander-session', activeDepartment);

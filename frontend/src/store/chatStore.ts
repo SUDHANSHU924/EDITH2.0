@@ -109,12 +109,24 @@ export const useChatStore = create<ChatStore>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         state.isThinking = false;
+        
+        // Handle migration from old array format to new Record format
+        if (Array.isArray(state.messages)) {
+          state.messages = {};
+          return;
+        }
+        
+        // Clean up existing record format
         const cleanedMessages: Record<string, Message[]> = {};
         for (const [dept, msgs] of Object.entries(state.messages)) {
-          cleanedMessages[dept] = msgs.map((message) => ({
-            ...message,
-            isStreaming: false,
-          }));
+          if (Array.isArray(msgs)) {
+            cleanedMessages[dept] = msgs.map((message) => ({
+              ...message,
+              isStreaming: false,
+            }));
+          } else {
+            cleanedMessages[dept] = [];
+          }
         }
         state.messages = cleanedMessages;
       },
