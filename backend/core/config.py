@@ -6,8 +6,9 @@ from pathlib import Path
 class Settings(BaseSettings):
     # NVIDIA API Configuration
     NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
+    NVIDIA_API_KEY: str = ""
     
-    # Department-Specific NVIDIA API Keys
+    # Department-Specific NVIDIA API Keys (fallback to main key if not set)
     NVIDIA_CORE_API_KEY: str = ""
     NVIDIA_PLANNING_API_KEY: str = ""
     NVIDIA_CODE_API_KEY: str = ""

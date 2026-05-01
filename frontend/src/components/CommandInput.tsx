@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Sparkles, Send, ChevronUp, ChevronDown, Paperclip, Camera, X, Volume2, VolumeX, Loader } from 'lucide-react';
 import { DEPARTMENT_COMMANDS, type DepartmentId } from '../departments';
@@ -59,7 +59,10 @@ export function CommandInput({
     clearTranscript,
     error: voiceError,
   } = useVoice();
-  const chatMessages = useChatStore((state) => state.getMessages(activeDepartment));
+  const chatMessages = useMemo(
+    () => useChatStore.getState().getMessages(activeDepartment),
+    [activeDepartment]
+  );
   const lastSpokenRef = useRef<number | null>(null);
 
   const color = departmentColor;

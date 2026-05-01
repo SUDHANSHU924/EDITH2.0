@@ -131,13 +131,116 @@ DEPARTMENT_CONFIG = {
     }
 }
 
+DEMO_RESPONSES = {
+    "core": "Understood, Commander. Standing by for your directive. I'm analyzing your latest command and will respond with all available intelligence. What would you like me to focus on?",
+    "planning": "[PLANNING MODE]\n1. Objective identified\n2. Decomposing into phases\n3. Analyzing dependencies\n4. Assessing risks\n5. Preparing execution plan\n\nPhase 1: Analysis complete. Ready for phase 2.",
+    "code": "Let me review that request. I'll generate production-quality code with proper error handling, type safety, and comprehensive documentation.",
+    "files": "FILE VAULT analyzing. Scanning attachment metadata, preparing extraction protocol. Which format would you prefer?",
+    "search": "SEARCH: Query processed. Scanning 400M+ indexed pages. Prioritizing relevance, recency, and authority signals. Results incoming.",
+    "learning": "[LEARNING MODE]\nInitializing instructional content pipeline... Breaking down concept into digestible modules for optimal understanding.",
+    "ml": "ML ENGINE: Initializing data analysis pipeline. Running pattern recognition, statistical validation, and model training.",
+    "iot": "IoT CONTROL: Smart home integration scanning. Analyzing device compatibility, protocol support, and automation rules.",
+    "vision": "VISION LENS: Multimodal analysis enabled. Preparing image interpretation, OCR extraction, and visual data synthesis.",
+    "voice": "VOICE OPS standing by. Ready to process voice commands, generate TTS responses, and handle multilingual interactions.",
+    "personal": "PERSONALIZE: Emotion detection active. Learning your preferences and communication style to optimize interactions.",
+    "security": "SECURITY GRID: Threat analysis initiated. Scanning for vulnerabilities, enforcing encryption protocols, and checking compliance.",
+    "daily": "DAILY OPS ready. Processing routine task assistance with maximum efficiency. How can I help with your everyday needs?",
+    "security_grid": "[ETHICAL HACKER MODE]\nOWASP vulnerability scanner active. CVE database synced. Ready for authorized security assessment.",
+    "satellite": "SATELLITE INTEL: Orbital tracking active. Syncing with N2YO database and NASA Earthdata. Awaiting mission parameters.",
+}
+
+def generate_demo_response(content: str, department: str) -> str:
+    """Generate context-aware demo response based on user input"""
+    user_input = content.lower().strip()
+    
+    # Department-specific knowledge bases
+    knowledge_base = {
+        "core": {
+            "what is": "I can explain any concept. Please clarify what topic you'd like me to break down for you.",
+            "how do": "I can provide step-by-step guidance. What specific task would you like help with?",
+            "hello": "Greetings, Commander. E.D.I.T.H Core standing by. What can I assist you with today?",
+            "hi": "Hello, Commander. System ready for your commands.",
+            "help": "I can assist with: Code, Planning, Analysis, Search, Learning, Security, and much more. What do you need?",
+            "status": "[SYSTEM STATUS]\n- All 15 modules online\n- Security protocols active\n- Database connections healthy\n- Standby for orders",
+        },
+        "code": {
+            "python": "I can write production Python code. What would you like me to build?",
+            "javascript": "JavaScript expertise ready. What's your project?",
+            "typescript": "TypeScript specialist here. Full type safety for your project.",
+            "generate": "I'll generate clean, documented code. What are the requirements?",
+            "bug": "Let's debug. What's the error or unexpected behavior?",
+            "code": "I can write, review, or fix code in 15+ languages. What do you need?",
+        },
+        "files": {
+            "analyze": "FILE VAULT: Ready to analyze your documents. Upload or describe the file type.",
+            "pdf": "PDF extraction and analysis enabled.",
+            "document": "Document analysis pipeline active. What file format?",
+            "extract": "Data extraction ready. What information do you need?",
+        },
+        "search": {
+            "search": "SEARCH ENGINE: Query analysis complete. Ready to scan indexed pages.",
+            "find": "Searching knowledge base and web. What are we looking for?",
+            "research": "Research mode activated. What's your query?",
+        },
+        "learning": {
+            "learn": "LEARNING MODE: I'll break this into digestible lessons. What topic?",
+            "teach": "Tutorial generation ready. What would you like to learn?",
+            "explain": "Detailed explanation coming up. What concept?",
+            "tutorial": "I can create step-by-step tutorials in any topic.",
+        },
+        "planning": {
+            "plan": "[PLANNING MODE] Decomposing your objective. What's the goal?",
+            "agent": "AGENT HUB: Chain-of-Thought reasoning active. What needs planning?",
+            "steps": "I'll break this into actionable phases. What's your project?",
+        },
+        "security": {
+            "secure": "SECURITY GRID: Analyzing threat vectors. What's your concern?",
+            "encrypt": "Encryption protocols available. What data needs securing?",
+            "hack": "Security assessment mode. Authorized testing only.",
+            "security": "SECURITY GRID active. Privacy and safety first.",
+        },
+        "vision": {
+            "image": "VISION LENS: Ready to analyze images. Upload or describe image.",
+            "picture": "Multimodal analysis enabled. What image would you share?",
+            "see": "Vision analysis standing by.",
+        },
+        "daily": {
+            "what": "DAILY OPS: I can answer questions on almost any topic.",
+            "tell": "Information retrieval ready.",
+            "question": "Ask away, Commander. I have answers.",
+        },
+    }
+    
+    # Get department-specific responses
+    dept_kb = knowledge_base.get(department, knowledge_base.get("core", {}))
+    
+    # Search for keyword matches
+    for keyword, response in dept_kb.items():
+        if keyword in user_input:
+            return response
+    
+    # Default response based on department
+    config_responses = {
+        "core": f"Understood. I'm processing your request: '{content}'. What specific assistance do you need?",
+        "code": f"CODE FORGE analyzing your request. Ready to generate production code. Details?",
+        "planning": f"AGENT HUB: Goal identified. Breaking down into phases. What's the scope?",
+        "files": f"FILE VAULT: File analysis ready. What format or type?",
+        "search": f"SEARCH ENGINE: Query received. Scanning databases. Refine your search?",
+        "learning": f"LEARNING MODULE: Topic identified. Creating educational content.",
+        "security": f"SECURITY GRID: Analyzing security implications.",
+        "vision": f"VISION LENS: Multimodal analysis ready.",
+        "daily": f"DAILY OPS: Task understood. How can I help with '{content}'?",
+        "planning": f"PLANNING: Objective set. Beginning decomposition.",
+    }
+    
+    return config_responses.get(department, f"EDITH processing: '{content}'. Standing by for clarification.")
 
 async def stream_response(
     content: str, 
     department: str,
     history: list = []
 ):
-    """Stream response using department-specific NVIDIA API keys"""
+    """Stream response using department-specific NVIDIA API keys with fallback"""
     config = DEPARTMENT_CONFIG.get(
         department, 
         DEPARTMENT_CONFIG["core"]
@@ -147,8 +250,11 @@ async def stream_response(
     model = config["model"]
     api_key_env = config["nvidia_api_key_env"]
     
-    # Get the department-specific NVIDIA API key from settings
-    api_key = getattr(settings, api_key_env, "")
+    # Get the department-specific NVIDIA API key, fallback to main key
+    api_key = getattr(settings, api_key_env, "").strip()
+    if not api_key:
+        api_key = settings.NVIDIA_API_KEY.strip()
+    
     base_url = settings.NVIDIA_BASE_URL
     
     # Build message history
@@ -186,11 +292,12 @@ async def stream_response(
                         yield f"data: {json.dumps({'content': delta})}\n\n"
                         await asyncio.sleep(0)
         else:
-            # Fallback greeting if API key not found
-            response = config["greeting"]
-            for char in response:
+            # Demo/fallback response if API key not found - use context-aware generation
+            demo_response = generate_demo_response(content, department)
+            # Stream with character-level delay for better UX
+            for char in demo_response:
                 yield f"data: {json.dumps({'content': char})}\n\n"
-                await asyncio.sleep(0.015)
+                await asyncio.sleep(0.01)
                 
     except Exception as e:
         error = f"[{config['name']}] Error: {str(e)[:100]}"

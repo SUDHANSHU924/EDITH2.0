@@ -89,6 +89,7 @@ export const useChatStore = create<ChatStore>()(
     }),
     {
       name: "edith-chat-store",
+      version: 2,
       partialize: (state) => {
         const sanitizedMessages: Record<string, Message[]> = {};
         for (const [dept, msgs] of Object.entries(state.messages)) {
@@ -105,6 +106,17 @@ export const useChatStore = create<ChatStore>()(
           messages: sanitizedMessages,
           currentDepartment: state.currentDepartment,
         };
+      },
+      migrate: (persistedState: any, version: number) => {
+        // Clear old cached data on version change to fix response duplication
+        if (version < 2) {
+          return {
+            messages: {},
+            isThinking: false,
+            currentDepartment: "core",
+          } as any;
+        }
+        return persistedState;
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
