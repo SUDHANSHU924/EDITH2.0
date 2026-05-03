@@ -356,7 +356,8 @@ function CommanderPage() {
   const handleAlwaysOnConversation = (transcript: string, reply: string, _system: string) => {
     addMessage({ role: "user", content: transcript, timestamp: new Date().toISOString() }, activeDepartment);
     addMessage({ role: "assistant", content: reply, timestamp: new Date().toISOString() }, activeDepartment);
-    void speak(reply);
+    // Audio playback is handled by useAlwaysOn hook via backend audio_base64
+    // Do NOT call speak(reply) here to avoid double-speak
     setAutoScroll(true);
   };
 

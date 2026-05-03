@@ -40,8 +40,35 @@ export function useAlwaysOn(
         setStatus('listening');
         return;
       }
+      
+      // Play audio response ONLY if backend provided it
+      // Do NOT call onTranscript with audio -- handle it here
+      if (data.audio_base64) {
+        speakingRef.current = true;
+        setStatus('speaking');
+        try {
+          const bytes = atob(data.audio_base64);
+          const arr = new Uint8Array(bytes.length);
+          for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+          const url = URL.createObjectURL(new Blob([arr], { type: 'audio/mpeg' }));
+          const audio = new Audio(url);
+          audio.onended = () => {
+            speakingRef.current = false;
+            URL.revokeObjectURL(url);
+            setStatus('listening');
+          };
+          await audio.play();
+        } catch (e) {
+          console.error('Audio play error:', e);
+          speakingRef.current = false;
+          setStatus('listening');
+        }
+      } else {
+        setStatus('listening');
+      }
+      
+      // Only pass transcript + reply text for logging (NOT audio playback)
       onTranscript(data.transcript, data.reply || '', data.system || 'core');
-      setStatus('listening');
     } catch (e) {
       console.error('Send audio error:', e);
       setStatus('listening');

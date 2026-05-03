@@ -169,6 +169,52 @@ class EDITHOrchestrator:
     def _get_task_log(self, session_id: str) -> list[dict]:
         return self._task_logs.setdefault(session_id, [])
 
+    def detect_command(self, user_input: str) -> dict | None:
+        """Fast detection of direct system commands (time, weather, etc.) without LLM."""
+        text = user_input.lower().strip()
+        
+        # Time commands
+        if any(k in text for k in ["what time", "current time", "tell me time", "what's the time", "time please"]):
+            import datetime
+            now = datetime.datetime.now()
+            reply = f"It's {now.strftime('%I:%M %p')} right now, boss."
+            return {"reply": reply, "type": "time"}
+        
+        # Date commands
+        if any(k in text for k in ["what date", "today's date", "what day", "current date"]):
+            import datetime
+            today = datetime.datetime.now()
+            reply = f"Today is {today.strftime('%A, %B %d, %Y')}."
+            return {"reply": reply, "type": "date"}
+        
+        # Simple calculations
+        if "calculate" in text or "math" in text or ("+" in text and len(text) < 50):
+            # Very basic math parsing
+            try:
+                import re
+                # Look for simple expressions like "2+2", "10-5", "3*4"
+                match = re.search(r'(\d+)\s*([+\-*/])\s*(\d+)', text)
+                if match:
+                    a, op, b = match.groups()
+                    a, b = int(a), int(b)
+                    if op == "+":
+                        result = a + b
+                    elif op == "-":
+                        result = a - b
+                    elif op == "*":
+                        result = a * b
+                    elif op == "/":
+                        result = a / b if b != 0 else None
+                    
+                    if result is not None:
+                        reply = f"That's {result}."
+                        return {"reply": reply, "type": "calculation"}
+            except:
+                pass
+        
+        # No direct command detected
+        return None
+
     def detect_route_async(self, user_input: str) -> dict:
         """Fast keyword-based routing — no extra LLM call, no rate-limit risk."""
         text = user_input.lower()

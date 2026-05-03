@@ -68,11 +68,20 @@ export function JarvisPanel({ color }: { color?: string }) {
     addStep("observation", "Routing to Jarvis reasoning engine (Groq LLM)...");
 
     try {
-      const res = await fetch(`${JARVIS_URL}/ask`, {
+      let res = await fetch(`${JARVIS_URL}/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task, max_tokens: 1024 }),
+        body: JSON.stringify({ task, require_confirmation: true, max_steps: 20 }),
       });
+
+      // Backward-compatible fallback if autonomous route is unavailable.
+      if (!res.ok && res.status === 404) {
+        res = await fetch(`${JARVIS_URL}/ask`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task, max_tokens: 1024 }),
+        });
+      }
 
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);

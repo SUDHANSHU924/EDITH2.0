@@ -27,12 +27,20 @@ def _clean_text(text: str) -> str:
     return text[:500]
 
 
+def _detect_tts_voice(text: str) -> str:
+    # Indian female voices only.
+    devanagari = sum(1 for c in text if '\u0900' <= c <= '\u097F')
+    return "hi-IN-SwaraNeural" if devanagari > 3 else "en-IN-NeerjaNeural"
+
+
 async def _tts(text: str) -> bytes:
     """Microsoft Edge TTS — free, no API key, natural voice."""
     try:
         import io
         import edge_tts
-        communicate = edge_tts.Communicate(_clean_text(text), "en-IN-NeerjaNeural")
+        clean = _clean_text(text)
+        voice = _detect_tts_voice(clean)
+        communicate = edge_tts.Communicate(clean, voice)
         buf = io.BytesIO()
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":

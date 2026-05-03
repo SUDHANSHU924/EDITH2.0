@@ -27,6 +27,11 @@ _voice_last_call: dict[str, float] = defaultdict(float)
 VOICE_COOLDOWN_SECS = 4.0        # min seconds between LLM calls per session
 MIN_TRANSCRIPT_WORDS = 3         # ignore transcripts shorter than this
 
+_SPANISH_HINTS = {
+    "hola", "gracias", "por", "favor", "como", "estas", "estoy", "buenos", "dias",
+    "tardes", "noches", "quiero", "puedo", "necesito", "que", "para", "con", "usted",
+}
+
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +53,33 @@ def _detect_script(text: str) -> str:
     return 'hindi' if devanagari > 3 else 'hinglish_or_english'
 
 
+def _contains_arabic_script(text: str) -> bool:
+    # Urdu is commonly written in Arabic script; block it for voice pipeline policy.
+    return any('\u0600' <= c <= '\u06FF' for c in text)
+
+
+def _validate_supported_voice_language(text: str) -> tuple[bool, str]:
+    """Allow only Hindi, Hinglish, and English for always-on voice."""
+    cleaned = text.strip()
+    if not cleaned:
+        return False, "empty"
+
+    if _contains_arabic_script(cleaned):
+        return False, "unsupported_urdu"
+
+    script = _detect_script(cleaned)
+    if script == "hindi":
+        return True, "hindi"
+
+    lowered = re.sub(r"[^a-zA-Z\s]", " ", cleaned.lower())
+    tokens = [t for t in lowered.split() if t]
+    spanish_hits = sum(1 for t in tokens if t in _SPANISH_HINTS)
+    if spanish_hits >= 2:
+        return False, "unsupported_spanish"
+
+    return True, "hinglish_or_english"
+
+
 def _clean_for_tts(text: str) -> str:
     text = _strip_action_tags(text)
     text = re.sub(r'\*{1,2}(.*?)\*{1,2}', r'\1', text)
@@ -67,7 +99,8 @@ async def _tts(text: str, lang: str = "auto") -> bytes:
         clean = _clean_for_tts(text)
         if not clean:
             return b""
-        voice = "hi-IN-SwaraNeural"
+        # Indian female voices only.
+        voice = "hi-IN-SwaraNeural" if lang == "hindi" else "en-IN-NeerjaNeural"
         communicate = edge_tts.Communicate(clean, voice)
         buf = io.BytesIO()
         async for chunk in communicate.stream():
@@ -90,7 +123,8 @@ async def chat(req: ChatRequest):
         "task_id": result["task_id"],
     }
     if req.voice_response:
-        audio = await _tts(result["reply"])
+        tts_lang = "hindi" if (req.language or "").lower() in {"hi", "hindi"} else "hinglish_or_english"
+        audio = await _tts(result["reply"], lang=tts_lang)
         response["audio_base64"] = base64.b64encode(audio).decode()
     return response
 
@@ -138,7 +172,12 @@ async def voice_pipeline(
             audio_bytes = f.read()
         files = {"file": (f"recording.{ext}", audio_bytes, f"audio/{ext}")}
         # whisper-large-v3-turbo: 8× faster, same accuracy, higher rate limits
-        data = {"model": "whisper-large-v3-turbo", "response_format": "json"}
+        data = {
+            "model": "whisper-large-v3-turbo",
+            "response_format": "json",
+            "prompt": "The user speaks Hindi, Hinglish, or English. Ignore Urdu, Spanish, and background noise.",
+            "temperature": "0",
+        }
         headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
         stt_resp = httpx.post(
             "https://api.groq.com/openai/v1/audio/transcriptions",
@@ -155,6 +194,16 @@ async def voice_pipeline(
         if len(transcript.split()) < MIN_TRANSCRIPT_WORDS:
             return {"transcript": transcript, "skipped": True,
                     "error": "Too short — speak a full sentence"}
+
+        # Guard 2.5: language policy (Hindi/Hinglish/English only)
+        allowed, lang_code = _validate_supported_voice_language(transcript)
+        if not allowed:
+            return {
+                "transcript": transcript,
+                "skipped": True,
+                "error": "Supported voice languages: Hindi, Hinglish, and English only.",
+                "reason": lang_code,
+            }
 
         # Guard 3: per-session cooldown to protect Groq rate limits
         now = time.time()
@@ -175,7 +224,7 @@ async def voice_pipeline(
         }
 
         if voice_response:
-            audio_out = await _tts(result["reply"])
+            audio_out = await _tts(result["reply"], lang=lang_code)
             response["audio_base64"] = base64.b64encode(audio_out).decode()
 
         return response

@@ -8,6 +8,7 @@ reasoning call (Groq, no tool access).
 
 import base64
 import os
+import asyncio
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -33,6 +34,12 @@ class AskRequest(BaseModel):
     max_tokens: int = 1024
 
 
+class RunRequest(BaseModel):
+    task: str
+    require_confirmation: bool = True
+    max_steps: int = 20
+
+
 class SearchRequest(BaseModel):
     query: str
     max_results: int = 5
@@ -48,7 +55,25 @@ async def status():
         "model": GROQ_MODEL,
         "platform": sys_info.get("platform"),
         "work_dir": sys_info.get("work_dir"),
+        "autonomous_run_enabled": True,
     }
+
+
+@router.post("/run")
+async def run(req: RunRequest):
+    """Autonomous ReAct task runner using local tool registry."""
+    if not req.task.strip():
+        raise HTTPException(status_code=400, detail="Task is required")
+    if req.max_steps < 1 or req.max_steps > 50:
+        raise HTTPException(status_code=400, detail="max_steps must be between 1 and 50")
+
+    try:
+        from agents.jarvis_agent import JarvisAgent
+        agent = JarvisAgent(max_steps=req.max_steps)
+        result = await asyncio.to_thread(agent.run, req.task, req.require_confirmation)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Jarvis run failed: {e}")
 
 
 @router.post("/ask")
