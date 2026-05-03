@@ -1,0 +1,27 @@
+{
+  "name": "edith",
+  "version": "2.0.0",
+  "description": "E.D.I.T.H — Autonomous Intelligence System (Next.js 15 + FastAPI)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "docker": "docker-compose up -d",
+    "install:all": "cd frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "keywords": [
+    "ai",
+    "autonomous",
+    "intelligence",
+    "nextjs",
+    "fastapi",
+    "langgraph"
+  ],
+  "author": "SUDHANSHU924",
+  "license": "MIT"
+}

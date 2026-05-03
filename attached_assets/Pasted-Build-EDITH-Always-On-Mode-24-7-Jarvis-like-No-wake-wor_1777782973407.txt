@@ -1,0 +1,507 @@
+Build EDITH Always-On Mode — 24/7 Jarvis like.
+No wake word needed. Always listening. Never sleeps.
+
+════════════════════════════════════
+PART 1 — CONTINUOUS LISTENING ENGINE
+════════════════════════════════════
+Create /frontend/src/hooks/useAlwaysOn.ts:
+
+import { useEffect, useRef, useState, useCallback } from 'react'
+
+const API = process.env.NEXT_PUBLIC_API_URL 
+          || 'http://localhost:8000'
+
+const SILENCE_THRESHOLD = 0.01
+const SILENCE_DURATION = 1500
+const MIN_SPEECH_DURATION = 800
+
+export function useAlwaysOn(
+  onTranscript: (text: string) => void,
+  enabled: boolean
+) {
+  const [isListening, setIsListening] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [volume, setVolume] = useState(0)
+  const [status, setStatus] = useState
+    'idle' | 'listening' | 'processing' | 'speaking'
+  >('idle')
+
+  const streamRef = useRef<MediaStream | null>(null)
+  const processorRef = useRef<ScriptProcessorNode | null>(null)
+  const contextRef = useRef<AudioContext | null>(null)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const silenceTimer = useRef<NodeJS.Timeout | null>(null)
+  const speechStartRef = useRef<number>(0)
+  const isRecordingRef = useRef(false)
+  const enabledRef = useRef(enabled)
+
+  useEffect(() => { enabledRef.current = enabled }, [enabled])
+
+  const stopCurrentAudio = useCallback(() => {
+    // Stop any playing audio so EDITH doesn't 
+    // listen to herself
+  }, [])
+
+  const processAudio = useCallback(async (blob: Blob) => {
+    if (blob.size < 1000) return
+    setStatus('processing')
+
+    const form = new FormData()
+    form.append('audio', blob, 'audio.webm')
+
+    try {
+      const res = await fetch(
+        `${API}/api/orchestrator/voice`, 
+        { method: 'POST', body: form }
+      )
+      const data = await res.json()
+
+      if (data.transcript?.trim()) {
+        onTranscript(data.transcript)
+      }
+
+      if (data.audio_base64) {
+        setStatus('speaking')
+        setIsSpeaking(true)
+        
+        const bytes = atob(data.audio_base64)
+        const arr = new Uint8Array(bytes.length)
+        for (let i = 0; i < bytes.length; i++) {
+          arr[i] = bytes.charCodeAt(i)
+        }
+        const url = URL.createObjectURL(
+          new Blob([arr], { type: 'audio/mpeg' })
+        )
+        const audio = new Audio(url)
+        
+        // Pause listening while speaking
+        audio.onplay = () => setIsSpeaking(true)
+        audio.onended = () => {
+          setIsSpeaking(false)
+          setStatus('listening')
+          URL.revokeObjectURL(url)
+        }
+        await audio.play()
+      }
+    } catch (e) {
+      console.error('Process error:', e)
+    } finally {
+      if (!isSpeaking) setStatus('listening')
+    }
+  }, [onTranscript, isSpeaking])
+
+  const startRecording = useCallback(() => {
+    if (isRecordingRef.current || !streamRef.current) return
+    isRecordingRef.current = true
+    chunksRef.current = []
+    speechStartRef.current = Date.now()
+
+    const recorder = new MediaRecorder(streamRef.current)
+    recorderRef.current = recorder
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data)
+    }
+
+    recorder.onstop = () => {
+      isRecordingRef.current = false
+      const duration = Date.now() - speechStartRef.current
+      if (duration >= MIN_SPEECH_DURATION) {
+        const blob = new Blob(chunksRef.current, {
+          type: 'audio/webm'
+        })
+        processAudio(blob)
+      }
+      chunksRef.current = []
+    }
+
+    recorder.start()
+    setStatus('listening')
+  }, [processAudio])
+
+  const stopRecording = useCallback(() => {
+    if (!isRecordingRef.current) return
+    recorderRef.current?.stop()
+    if (silenceTimer.current) {
+      clearTimeout(silenceTimer.current)
+    }
+  }, [])
+
+  // MAIN: Start continuous listening
+  const startListening = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices
+        .getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 16000
+          }
+        })
+      
+      streamRef.current = stream
+      const context = new AudioContext()
+      contextRef.current = context
+      
+      const source = context.createMediaStreamSource(stream)
+      const processor = context.createScriptProcessor(
+        2048, 1, 1
+      )
+      processorRef.current = processor
+
+      processor.onaudioprocess = (e) => {
+        if (!enabledRef.current || isSpeaking) return
+        
+        const data = e.inputBuffer.getChannelData(0)
+        let sum = 0
+        for (let i = 0; i < data.length; i++) {
+          sum += Math.abs(data[i])
+        }
+        const avg = sum / data.length
+        setVolume(avg)
+
+        // Voice detected
+        if (avg > SILENCE_THRESHOLD) {
+          if (!isRecordingRef.current) {
+            startRecording()
+          }
+          // Reset silence timer
+          if (silenceTimer.current) {
+            clearTimeout(silenceTimer.current)
+          }
+          silenceTimer.current = setTimeout(() => {
+            if (isRecordingRef.current) {
+              stopRecording()
+            }
+          }, SILENCE_DURATION)
+        }
+      }
+
+      source.connect(processor)
+      processor.connect(context.destination)
+      setIsListening(true)
+      setStatus('listening')
+      
+    } catch (e) {
+      console.error('Mic error:', e)
+    }
+  }, [isSpeaking, startRecording, stopRecording])
+
+  const stopListening = useCallback(() => {
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    processorRef.current?.disconnect()
+    contextRef.current?.close()
+    setIsListening(false)
+    setStatus('idle')
+  }, [])
+
+  useEffect(() => {
+    if (enabled) startListening()
+    else stopListening()
+    return stopListening
+  }, [enabled])
+
+  return { 
+    isListening, isSpeaking, volume, status
+  }
+}
+
+════════════════════════════════════
+PART 2 — ALWAYS ON BACKEND ENDPOINT
+════════════════════════════════════
+In /backend/routers/orchestrator.py
+Add this endpoint:
+
+@router.post("/voice")
+async def voice_orchestrator(
+    audio: UploadFile = File(...)
+):
+    """Continuous voice pipeline"""
+    from agents.master_orchestrator import orchestrator
+    from groq import Groq
+    import os, tempfile, base64
+    
+    groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=".webm"
+    ) as tmp:
+        tmp.write(await audio.read())
+        tmp_path = tmp.name
+    
+    try:
+        # STT — auto language detection
+        with open(tmp_path, "rb") as f:
+            transcription = groq.audio.transcriptions.create(
+                file=("audio.webm", f.read()),
+                model="whisper-large-v3",
+                response_format="text"
+                # No language = auto detect ALL languages
+            )
+        
+        transcript = transcription.strip()
+        
+        # Filter noise/short sounds
+        if not transcript or len(transcript) < 3:
+            return {"transcript": "", "reply": ""}
+        
+        # Filter if EDITH heard herself
+        ignore_phrases = [
+            "thank you", "thanks", "okay", 
+            "commander", "edith", "..."
+        ]
+        if transcript.lower().strip() in ignore_phrases:
+            return {"transcript": transcript, "reply": ""}
+        
+        # Think and respond
+        result = await orchestrator.think_and_respond(
+            transcript
+        )
+        
+        # TTS
+        audio_bytes = b""
+        try:
+            groq_tts = Groq(
+                api_key=os.getenv("GROQ_API_KEY")
+            )
+            tts_response = groq_tts.audio.speech.create(
+                model="playai-tts",
+                voice="Celeste-PlayAI",
+                input=result["reply"][:500],
+                response_format="mp3"
+            )
+            audio_bytes = tts_response.read()
+        except Exception as e:
+            print(f"TTS error: {e}")
+        
+        return {
+            "transcript": transcript,
+            "reply": result["reply"],
+            "system": result["system"],
+            "audio_base64": base64.b64encode(
+                audio_bytes
+            ).decode() if audio_bytes else ""
+        }
+        
+    finally:
+        os.unlink(tmp_path)
+
+════════════════════════════════════
+PART 3 — ALWAYS ON UI INDICATOR
+════════════════════════════════════
+Create /frontend/src/components/AlwaysOnIndicator.tsx:
+
+'use client'
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { useAlwaysOn } from '../hooks/useAlwaysOn'
+
+interface Props {
+  onMessage: (text: string, reply: string, 
+              system: string) => void
+}
+
+export function AlwaysOnIndicator({ onMessage }: Props) {
+  const [enabled, setEnabled] = useState(false)
+  const [log, setLog] = useState<string[]>([])
+
+  const handleTranscript = async (text: string) => {
+    setLog(prev => [...prev.slice(-4), `You: ${text}`])
+  }
+
+  const { 
+    isListening, isSpeaking, 
+    volume, status 
+  } = useAlwaysOn(handleTranscript, enabled)
+
+  const getColor = () => {
+    if (!enabled) return '#333'
+    if (isSpeaking) return '#00F0FF'
+    if (status === 'processing') return '#7B61FF'
+    if (isListening) return '#00FF88'
+    return '#00FF88'
+  }
+
+  const getLabel = () => {
+    if (!enabled) return 'ALWAYS-ON: OFF'
+    if (isSpeaking) return 'EDITH SPEAKING'
+    if (status === 'processing') return 'PROCESSING...'
+    if (isListening) return 'ALWAYS LISTENING'
+    return 'STARTING...'
+  }
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: '60px', right: '16px',
+      zIndex: 1000,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      gap: '8px'
+    }}>
+      {/* Main toggle button */}
+      <motion.button
+        onClick={() => setEnabled(!enabled)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: enabled 
+            ? 'rgba(0,255,136,0.08)' 
+            : 'rgba(255,255,255,0.04)',
+          border: `1px solid ${
+            enabled ? '#00FF88' : 'rgba(255,255,255,0.1)'
+          }`,
+          borderRadius: '20px',
+          padding: '6px 14px',
+          cursor: 'pointer',
+          backdropFilter: 'blur(10px)'
+        }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {/* Pulsing orb */}
+        <motion.div
+          style={{
+            width: '8px', height: '8px',
+            borderRadius: '50%',
+            background: getColor(),
+            boxShadow: enabled 
+              ? `0 0 8px ${getColor()}` : 'none'
+          }}
+          animate={enabled ? {
+            scale: isSpeaking 
+              ? [1, 1.8, 1] 
+              : isListening 
+                ? [1, 1 + volume * 10, 1] 
+                : [1, 1.3, 1],
+            opacity: [1, 0.6, 1]
+          } : {}}
+          transition={{ 
+            repeat: Infinity, 
+            duration: isSpeaking ? 0.5 : 1.5 
+          }}
+        />
+        
+        <span style={{
+          fontFamily: 'JetBrains Mono',
+          fontSize: '9px',
+          color: enabled 
+            ? getColor() 
+            : 'rgba(255,255,255,0.3)',
+          letterSpacing: '0.08em'
+        }}>
+          {getLabel()}
+        </span>
+      </motion.button>
+
+      {/* Volume bar when listening */}
+      {enabled && isListening && (
+        <motion.div
+          initial={{ opacity: 0, width: 0 }}
+          animate={{ opacity: 1, width: '160px' }}
+          style={{
+            height: '3px',
+            background: 'rgba(0,255,136,0.15)',
+            borderRadius: '2px',
+            overflow: 'hidden'
+          }}
+        >
+          <motion.div
+            style={{
+              height: '100%',
+              background: '#00FF88',
+              borderRadius: '2px'
+            }}
+            animate={{
+              width: `${Math.min(volume * 2000, 100)}%`
+            }}
+            transition={{ duration: 0.1 }}
+          />
+        </motion.div>
+      )}
+
+      {/* Recent transcript log */}
+      {enabled && log.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            background: 'rgba(5,5,5,0.95)',
+            border: '1px solid rgba(0,255,136,0.15)',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            maxWidth: '220px'
+          }}
+        >
+          {log.slice(-2).map((l, i) => (
+            <div key={i} style={{
+              fontFamily: 'JetBrains Mono',
+              fontSize: '9px',
+              color: 'rgba(255,255,255,0.5)',
+              marginBottom: '2px'
+            }}>
+              {l}
+            </div>
+          ))}
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
+════════════════════════════════════
+PART 4 — ADD TO MAIN APP
+════════════════════════════════════
+In App.tsx or commander page:
+
+import { AlwaysOnIndicator } from './components/AlwaysOnIndicator'
+
+// Add inside return, after all panels:
+<AlwaysOnIndicator
+  onMessage={(text, reply, system) => {
+    // Add to chat messages
+    setMessages(prev => [...prev,
+      { id: Date.now(), role: 'user', 
+        text, system: 'user',
+        time: new Date().toLocaleTimeString() },
+      { id: Date.now()+1, role: 'edith', 
+        text: reply, system,
+        time: new Date().toLocaleTimeString() }
+    ])
+  }}
+/>
+
+════════════════════════════════════
+PART 5 — RESTART AND TEST
+════════════════════════════════════
+pkill -f uvicorn
+cd backend && python main.py &
+cd frontend && npm run dev
+
+Open /commander page.
+Click "ALWAYS LISTENING" button top-right.
+It turns GREEN.
+
+Now WITHOUT pressing anything:
+- Say "EDITH what time is it"
+- EDITH should hear and respond
+- Say "code likhna hai Python mein"  
+- EDITH should respond in Hinglish
+- Say "latest AI news"
+- EDITH should search and tell you
+
+EDITH never sleeps.
+No button press needed.
+No wake word needed.
+Just talk naturally.
+
+Test report:
+✅ Always-on toggle works?
+✅ Mic auto-detects voice?
+✅ No button press needed?
+✅ Works in Hindi + English?
+✅ EDITH speaks back?
+✅ Shows in chat log?

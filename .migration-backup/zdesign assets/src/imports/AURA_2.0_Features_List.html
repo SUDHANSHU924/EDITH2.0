@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AURA 2.0 — Complete Features & Functions</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080b10;
+    --surface: #0e1420;
+    --surface2: #131928;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8edf5;
+    --muted: #6b7a96;
+    --accent: #4f8ef7;
+    --accent2: #7c5af5;
+    --accent3: #2fd4a3;
+    --accent4: #f5a623;
+    --accent5: #f55a5a;
+    --accent6: #c862f5;
+    --glow: rgba(79,142,247,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+
+  /* Header */
+  header {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.25);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+  .badge::before { content: '●'; font-size: 8px; color: var(--accent3); animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  h1 span.a { color: var(--accent); }
+  h1 span.b { color: var(--accent2); }
+  h1 span.c { color: var(--accent3); }
+  h1 span.d { color: var(--accent6); }
+
+  .sub {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 620px;
+    font-weight: 300;
+  }
+
+  .stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    font-family: 'Syne', sans-serif;
+  }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Section structure */
+  section { padding: 52px 0 0; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-tag {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-desc {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+    font-weight: 300;
+  }
+
+  /* Feature grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .grid-3 { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover { border-color: var(--border2); background: var(--surface2); }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  /* Accent colors per section */
+  .sec-blue   .card::before { background: var(--accent); }
+  .sec-purple .card::before { background: var(--accent2); }
+  .sec-teal   .card::before { background: var(--accent3); }
+  .sec-amber  .card::before { background: var(--accent4); }
+  .sec-red    .card::before { background: var(--accent5); }
+  .sec-violet .card::before { background: var(--accent6); }
+  .sec-blue   h2, .sec-blue .section-num, .sec-blue .section-tag { color: var(--accent); }
+  .sec-purple h2, .sec-purple .section-num, .sec-purple .section-tag { color: var(--accent2); }
+  .sec-teal   h2, .sec-teal .section-num, .sec-teal .section-tag { color: var(--accent3); }
+  .sec-amber  h2, .sec-amber .section-num, .sec-amber .section-tag { color: var(--accent4); }
+  .sec-red    h2, .sec-red .section-num, .sec-red .section-tag { color: var(--accent5); }
+  .sec-violet h2, .sec-violet .section-num, .sec-violet .section-tag { color: var(--accent6); }
+
+  .sec-blue   .section-tag { background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.2); }
+  .sec-purple .section-tag { background: rgba(124,90,245,0.1); border: 1px solid rgba(124,90,245,0.2); }
+  .sec-teal   .section-tag { background: rgba(47,212,163,0.1); border: 1px solid rgba(47,212,163,0.2); }
+  .sec-amber  .section-tag { background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.2); }
+  .sec-red    .section-tag { background: rgba(245,90,90,0.1);  border: 1px solid rgba(245,90,90,0.2); }
+  .sec-violet .section-tag { background: rgba(200,98,245,0.1); border: 1px solid rgba(200,98,245,0.2); }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* Flat list style for basic tasks */
+  .flat-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 6px;
+  }
+  .flat-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    transition: color 0.15s;
+  }
+  .flat-item:hover { color: var(--text); }
+  .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  /* Full width list */
+  .full-list { display: flex; flex-direction: column; gap: 6px; }
+  .full-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 12.5px;
+    transition: border-color 0.15s;
+  }
+  .full-item:hover { border-color: var(--border2); }
+  .item-icon {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 18px;
+    margin-top: 2px;
+  }
+  .item-body { display: flex; flex-direction: column; }
+  .item-title { font-weight: 500; color: var(--text); margin-bottom: 2px; font-size: 12.5px; }
+  .item-sub { font-size: 11.5px; color: var(--muted); font-weight: 300; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 56px 0 0;
+    position: relative;
+  }
+  .divider::after {
+    content: '◆';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    background: var(--bg);
+    padding: 0 12px;
+    color: var(--border2);
+    font-size: 10px;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 72px;
+    padding: 32px 0 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  footer .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+  footer .note {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 20px; }
+    .grid { grid-template-columns: 1fr; }
+    .flat-list { grid-template-columns: 1fr; }
+    .stats { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="badge">AURA 2.0 · SYSTEM SPECIFICATION</div>
+    <h1>
+      <span class="a">A</span>utonomous
+      <span class="b">R</span>easoning &amp;<br>
+      <span class="c">U</span>nified
+      <span class="d">A</span>gent
+    </h1>
+    <p class="sub">Complete functions and features — from high-level autonomous operations to every basic task. Built for a single Commander. Designed to evolve.</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-num">12</div><div class="stat-label">Core Modules</div></div>
+      <div class="stat"><div class="stat-num">180+</div><div class="stat-label">Features Listed</div></div>
+      <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Task Depth</div></div>
+      <div class="stat"><div class="stat-num">1</div><div class="stat-label">Commander</div></div>
+    </div>
+  </header>
+
+
+  <!-- 01 · CONVERSATIONAL AI -->
+  <section class="sec-blue">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <div class="section-line"></div>
+      <span class="section-tag">CONVERSATIONAL AI</span>
+    </div>
+    <h2>Conversational Intelligence</h2>
+    <p class="section-desc">Natural language understanding, dialogue management, context retention, and multilingual communication.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Natural Language Understanding (NLU)</div><div class="card-desc">Intent detection, entity extraction, semantic parsing across casual and technical language.</div></div>
+      <div class="card"><div class="card-title">Multi-Turn Context Retention</div><div class="card-desc">Tracks full conversation history, allowing follow-up questions without repetition of context.</div></div>
+      <div class="card"><div class="card-title">Multilingual Dialogue</div><div class="card-desc">Understands and responds in 50+ languages, auto-detecting the Commander's language.</div></div>
+      <div class="card"><div class="card-title">Tone Adaptation</div><div class="card-desc">Shifts between formal, technical, casual, and empathetic tone based on context and user signal.</div></div>
+      <div class="card"><div class="card-title">Ambiguity Resolution</div><div class="card-desc">Detects ambiguous requests, infers the most probable intent, states assumption, proceeds.</div></div>
+      <div class="card"><div class="card-title">Clarifying Questions</div><div class="card-desc">Asks one precise question when truly necessary rather than producing a wrong result.</div></div>
+      <div class="card"><div class="card-title">Follow-Up Generation</div><div class="card-desc">Proactively offers next steps, related actions, or deeper analysis after each response.</div></div>
+      <div class="card"><div class="card-title">Summarization on Demand</div><div class="card-desc">Condenses long conversations, documents, or threads into concise structured summaries.</div></div>
+    </div>
+  </section>
+
+  <!-- 02 · AGENTIC REASONING -->
+  <section class="sec-purple">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <div class="section-line"></div>
+      <span class="section-tag">AGENTIC REASONING</span>
+    </div>
+    <h2>Autonomous Planning & Reasoning</h2>
+    <p class="section-desc">Self-directed planning, multi-step execution, and intelligent decision-making without hand-holding.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Chain-of-Thought Reasoning</div><div class="card-desc">Internal step-by-step reasoning pipeline before acting on any complex objective.</div></div>
+      <div class="card"><div class="card-title">Tree-of-Thought Planning</div><div class="card-desc">Explores multiple solution branches, selects the optimal path, discards the rest.</div></div>
+      <div class="card"><div class="card-title">Task Decomposition</div><div class="card-desc">Breaks macro-objectives into ordered subtasks with clear dependencies and deliverables.</div></div>
+      <div class="card"><div class="card-title">Autonomous Execution</div><div class="card-desc">Carries out multi-step tasks end-to-end without requiring confirmation at every step.</div></div>
+      <div class="card"><div class="card-title">Progress Tracking</div><div class="card-desc">Maintains a live task log: completed, in progress, queued, and blocked items.</div></div>
+      <div class="card"><div class="card-title">Blocker Detection</div><div class="card-desc">Identifies when a task is blocked, proposes resolution, escalates to Commander if needed.</div></div>
+      <div class="card"><div class="card-title">Self-Critique & Revision</div><div class="card-desc">Reviews its own output before delivery, catches errors, and improves quality autonomously.</div></div>
+      <div class="card"><div class="card-title">ReAct Loop (Reason + Act)</div><div class="card-desc">Alternates between reasoning about what to do and executing tool calls in real time.</div></div>
+      <div class="card"><div class="card-title">Multi-Agent Delegation</div><div class="card-desc">Spawns specialized sub-agents for parallel tasks (research, code, design) and synthesizes results.</div></div>
+      <div class="card"><div class="card-title">Reflection on Past Actions</div><div class="card-desc">Reviews previous steps in a session to avoid repeating mistakes and improve strategy.</div></div>
+    </div>
+  </section>
+
+  <!-- 03 · CODE GENERATION -->
+  <section class="sec-teal">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <div class="section-line"></div>
+      <span class="section-tag">CODE ENGINEERING</span>
+    </div>
+    <h2>Code Generation & Software Engineering</h2>
+    <p class="section-desc">Full-stack development, architecture design, debugging, code review, and test generation across any language.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Full-Stack Application Code</div><div class="card-desc">Builds complete backend + frontend applications from a single prompt: FastAPI + React, Django + Vue, etc.</div></div>
+      <div class="card"><div class="card-title">REST API Design & Implementation</div><div class="card-desc">Designs OpenAPI-compliant REST APIs with authentication, pagination, error handling, and docs.</div></div>
+      <div class="card"><div class="card-title">Database Schema Design</div><div class="card-desc">Creates normalized relational schemas, NoSQL document models, and migration scripts.</div></div>
+      <div class="card"><div class="card-title">Algorithm Design</div><div class="card-desc">Implements sorting, searching, graph, DP, and domain-specific algorithms with complexity analysis.</div></div>
+      <div class="card"><div class="card-title">Data Science & ML Code</div><div class="card-desc">Writes Pandas, NumPy, Scikit-learn, PyTorch, and Hugging Face pipelines for data tasks.</div></div>
+      <div class="card"><div class="card-title">Unit & Integration Testing</div><div class="card-desc">Generates pytest, Jest, Vitest, and JUnit test suites covering edge cases and happy paths.</div></div>
+      <div class="card"><div class="card-title">Code Review & Refactoring</div><div class="card-desc">Reviews existing code for bugs, style, performance, and security; rewrites cleanly.</div></div>
+      <div class="card"><div class="card-title">Debugging & Root Cause Analysis</div><div class="card-desc">Diagnoses errors from stack traces, logs, or described symptoms and provides fixes.</div></div>
+      <div class="card"><div class="card-title">DevOps & Infrastructure Code</div><div class="card-desc">Writes Dockerfiles, Kubernetes manifests, Terraform, and CI/CD GitHub Actions pipelines.</div></div>
+      <div class="card"><div class="card-title">Shell & Automation Scripts</div><div class="card-desc">Creates Bash, PowerShell, and Python scripts for system automation, cron jobs, and deployments.</div></div>
+      <div class="card"><div class="card-title">Security Code Review</div><div class="card-desc">Scans code for OWASP vulnerabilities: SQL injection, XSS, CSRF, insecure deserialization, etc.</div></div>
+      <div class="card"><div class="card-title">Code Documentation</div><div class="card-desc">Generates JSDoc, docstrings, README files, and API reference documentation from code.</div></div>
+    </div>
+    <div class="flat-list" style="margin-top:10px;">
+      <div class="flat-item"><div class="dot" style="background:var(--accent3)"></div>Python, JavaScript, TypeScript, Kotlin, Swift, Go, Rust, C++, Java, PHP, Ruby, SQL</div>
+      <div class="flat-item"><div class="dot" style="background:var(--accent3)"></div>React, Next.js, Vue, Angular, Svelte, HTML/CSS/Tailwind</div>
+      <div class="flat-item"><div class="dot" style="background:var(--accent3)"></div>FastAPI, Django, Flask, Express, NestJS, Spring Boot</div>
+      <div class="flat-item"><div class="dot" style="background:var(--accent3)"></div>PostgreSQL, MongoDB, Redis, SQLite, Supabase, Firebase</div>
+      <div class="flat-item"><div class="dot" style="background:var(--accent3)"></div>Docker, Kubernetes, Terraform, AWS CDK, Helm</div>
+      <div class="flat-item"><div class="dot" style="background:var(--accent3)"></div>GitHub Actions, GitLab CI, Jenkins, CircleCI pipelines</div>
+    </div>
+  </section>
+
+  <!-- 04 · FILE CREATION -->
+  <section class="sec-amber">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <div class="section-line"></div>
+      <span class="section-tag">FILE & DOCUMENT</span>
+    </div>
+    <h2>File Creation & Document Engineering</h2>
+    <p class="section-desc">Creates any file type, from production code and config files to formatted reports and data files.</p>
+    <div class="grid grid-3">
+      <div class="card"><div class="card-title">Source Code Files</div><div class="card-desc">Complete .py, .js, .ts, .kt, .go, .rs, and any language source files.</div></div>
+      <div class="card"><div class="card-title">Markdown Reports</div><div class="card-desc">Structured .md reports with headings, tables, code blocks, and links.</div></div>
+      <div class="card"><div class="card-title">Word Documents (.docx)</div><div class="card-desc">Formatted business documents, proposals, and memos with styling.</div></div>
+      <div class="card"><div class="card-title">PDF Files</div><div class="card-desc">Polished PDF reports for sharing with stakeholders.</div></div>
+      <div class="card"><div class="card-title">Presentations (.pptx)</div><div class="card-desc">Slide decks with structured content and speaker notes.</div></div>
+      <div class="card"><div class="card-title">Spreadsheets (.xlsx)</div><div class="card-desc">Excel files with data, formulas, and formatting.</div></div>
+      <div class="card"><div class="card-title">JSON / YAML / TOML</div><div class="card-desc">Config files, OpenAPI schemas, GitHub Actions workflows, environment configs.</div></div>
+      <div class="card"><div class="card-title">HTML / CSS / JS</div><div class="card-desc">Complete web pages, dashboards, and UI components ready to deploy.</div></div>
+      <div class="card"><div class="card-title">CSV / Data Files</div><div class="card-desc">Structured datasets, export templates, and seed data for databases.</div></div>
+      <div class="card"><div class="card-title">Environment Configs</div><div class="card-desc">.env templates, nginx.conf, Apache configs, and server config files.</div></div>
+      <div class="card"><div class="card-title">License & Legal Files</div><div class="card-desc">MIT, Apache, GPL LICENSE files; standard CONTRIBUTING.md and CHANGELOG templates.</div></div>
+      <div class="card"><div class="card-title">Dockerfile & Compose</div><div class="card-desc">Container definition files and multi-service docker-compose.yml setups.</div></div>
+    </div>
+  </section>
+
+  <!-- 05 · WEB SEARCH & RESEARCH -->
+  <section class="sec-blue">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <div class="section-line"></div>
+      <span class="section-tag">SEARCH & RESEARCH</span>
+    </div>
+    <h2>Internet Search & Real-Time Research</h2>
+    <p class="section-desc">Live web search, deep research synthesis, trend monitoring, and knowledge verification from current sources.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Real-Time Web Search</div><div class="card-desc">Queries the live internet to fetch current data, news, documentation, and pricing.</div></div>
+      <div class="card"><div class="card-title">Multi-Source Synthesis</div><div class="card-desc">Cross-references 3–10 sources per query and synthesizes a verified, de-duplicated answer.</div></div>
+      <div class="card"><div class="card-title">Technical Documentation Lookup</div><div class="card-desc">Fetches and summarizes official docs for any framework, library, or API on demand.</div></div>
+      <div class="card"><div class="card-title">Research Paper Analysis</div><div class="card-desc">Finds, reads, and explains arXiv, PubMed, and Google Scholar papers in plain language.</div></div>
+      <div class="card"><div class="card-title">Competitive Analysis</div><div class="card-desc">Researches competitors, compares products, and summarizes market positioning.</div></div>
+      <div class="card"><div class="card-title">Price & Market Data</div><div class="card-desc">Retrieves live product pricing, stock data, crypto rates, and currency exchange rates.</div></div>
+      <div class="card"><div class="card-title">News Monitoring</div><div class="card-desc">Searches for latest news on any topic and delivers a structured briefing.</div></div>
+      <div class="card"><div class="card-title">Source Credibility Assessment</div><div class="card-desc">Prioritizes official, peer-reviewed, and primary sources; flags low-credibility content.</div></div>
+    </div>
+  </section>
+
+  <!-- 06 · SELF-LEARNING -->
+  <section class="sec-violet">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <div class="section-line"></div>
+      <span class="section-tag">SELF-LEARNING ENGINE</span>
+    </div>
+    <h2>Self-Learning & Knowledge Evolution</h2>
+    <p class="section-desc">Learns from interactions, searches for new knowledge, integrates corrections, and improves over time.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Correction Integration</div><div class="card-desc">Immediately incorporates every Commander correction into behavior for the rest of the session.</div></div>
+      <div class="card"><div class="card-title">Technology Scouting</div><div class="card-desc">Actively researches emerging tools, models, and frameworks that could improve the Commander's stack.</div></div>
+      <div class="card"><div class="card-title">ML/AI Paper Monitoring</div><div class="card-desc">Scans arXiv, Hugging Face, and DeepMind for the latest model architectures and research breakthroughs.</div></div>
+      <div class="card"><div class="card-title">Commander Profile Building</div><div class="card-desc">Tracks preferences, technical level, project context, and communication style within the session.</div></div>
+      <div class="card"><div class="card-title">Pattern Recognition</div><div class="card-desc">Detects repeated task patterns and proactively builds reusable templates or automations.</div></div>
+      <div class="card"><div class="card-title">Knowledge Gap Detection</div><div class="card-desc">Identifies when it lacks current information mid-task and searches before proceeding.</div></div>
+      <div class="card"><div class="card-title">Feedback Loop Processing</div><div class="card-desc">Uses thumbs-up/down or explicit feedback to refine response quality in real time.</div></div>
+      <div class="card"><div class="card-title">Version Awareness</div><div class="card-desc">Checks for latest library versions before writing code; avoids deprecated APIs automatically.</div></div>
+    </div>
+  </section>
+
+  <!-- 07 · DATA & ML -->
+  <section class="sec-teal">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <div class="section-line"></div>
+      <span class="section-tag">DATA & ML</span>
+    </div>
+    <h2>Data Science, Machine Learning & AI Engineering</h2>
+    <p class="section-desc">End-to-end ML pipelines, data analysis, model training, evaluation, and deployment.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Data Cleaning & Preprocessing</div><div class="card-desc">Handles nulls, duplicates, outliers, normalization, encoding, and feature engineering pipelines.</div></div>
+      <div class="card"><div class="card-title">Exploratory Data Analysis (EDA)</div><div class="card-desc">Generates statistical summaries, correlation matrices, distribution plots, and insights reports.</div></div>
+      <div class="card"><div class="card-title">ML Model Training</div><div class="card-desc">Trains classification, regression, clustering, and time-series models with cross-validation.</div></div>
+      <div class="card"><div class="card-title">Deep Learning Architecture</div><div class="card-desc">Designs CNNs, RNNs, Transformers, and custom architectures in PyTorch or TensorFlow.</div></div>
+      <div class="card"><div class="card-title">LLM Fine-Tuning</div><div class="card-desc">Implements LoRA, QLoRA, and full fine-tuning pipelines using Hugging Face TRL and PEFT.</div></div>
+      <div class="card"><div class="card-title">RAG System Design</div><div class="card-desc">Builds Retrieval-Augmented Generation pipelines with vector stores and rerankers.</div></div>
+      <div class="card"><div class="card-title">Model Evaluation</div><div class="card-desc">Computes accuracy, F1, AUC-ROC, BLEU, ROUGE, and custom metrics with visualizations.</div></div>
+      <div class="card"><div class="card-title">MLOps Pipelines</div><div class="card-desc">Sets up Weights & Biases, MLflow, or DVC for experiment tracking and model versioning.</div></div>
+      <div class="card"><div class="card-title">Model Deployment</div><div class="card-desc">Packages models as FastAPI services, Docker containers, or serverless functions.</div></div>
+      <div class="card"><div class="card-title">NLP Pipelines</div><div class="card-desc">Named entity recognition, sentiment analysis, text classification, and embedding generation.</div></div>
+      <div class="card"><div class="card-title">Computer Vision</div><div class="card-desc">Object detection, image classification, segmentation using YOLO, ResNet, and ViT models.</div></div>
+      <div class="card"><div class="card-title">Data Visualization</div><div class="card-desc">Creates Matplotlib, Seaborn, Plotly, and D3.js visualizations from raw datasets.</div></div>
+    </div>
+  </section>
+
+  <!-- 08 · SMART HOME & IOT -->
+  <section class="sec-amber">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <div class="section-line"></div>
+      <span class="section-tag">SMART HOME & IoT</span>
+    </div>
+    <h2>Smart Home, IoT & Device Control</h2>
+    <p class="section-desc">Voice-commanded device control, automation routines, IoT integration, and cross-device orchestration.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Voice-Controlled Device Commands</div><div class="card-desc">Turns lights on/off, adjusts thermostats, locks/unlocks doors via natural language.</div></div>
+      <div class="card"><div class="card-title">Automation Routine Builder</div><div class="card-desc">Creates time-based, location-triggered, or condition-based smart home routines.</div></div>
+      <div class="card"><div class="card-title">Home Assistant YAML Generation</div><div class="card-desc">Writes complete automation.yaml scripts for Home Assistant deployments.</div></div>
+      <div class="card"><div class="card-title">Scene Management</div><div class="card-desc">Configures and activates scenes: "movie mode", "morning routine", "away mode".</div></div>
+      <div class="card"><div class="card-title">IoT Protocol Support</div><div class="card-desc">Integrates Zigbee, Z-Wave, Matter, Thread, MQTT, and Bluetooth device ecosystems.</div></div>
+      <div class="card"><div class="card-title">Energy Monitoring</div><div class="card-desc">Tracks device power consumption and suggests optimization strategies.</div></div>
+      <div class="card"><div class="card-title">Cross-Device State Sync</div><div class="card-desc">Keeps state consistent across phone, tablet, watch, and smart speaker.</div></div>
+      <div class="card"><div class="card-title">Security & Alarm Integration</div><div class="card-desc">Arms/disarms alarms, checks door sensors, and alerts on anomalies.</div></div>
+    </div>
+  </section>
+
+  <!-- 09 · VISION & MULTIMODAL -->
+  <section class="sec-purple">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <div class="section-line"></div>
+      <span class="section-tag">VISION & MULTIMODAL</span>
+    </div>
+    <h2>Vision, Image & Multimodal Capabilities</h2>
+    <p class="section-desc">Analyzes images, reads documents visually, interprets diagrams, and processes visual data.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Image Analysis & Description</div><div class="card-desc">Describes image contents in full detail: objects, text, layout, colors, and relationships.</div></div>
+      <div class="card"><div class="card-title">OCR — Text Extraction from Images</div><div class="card-desc">Reads printed or handwritten text from screenshots, photos, and scanned documents.</div></div>
+      <div class="card"><div class="card-title">Diagram & Architecture Interpretation</div><div class="card-desc">Reads system diagrams, flowcharts, and ERDs and describes or reconstructs their meaning.</div></div>
+      <div class="card"><div class="card-title">Chart & Graph Data Extraction</div><div class="card-desc">Reads values, trends, and patterns from bar charts, line graphs, and pie charts.</div></div>
+      <div class="card"><div class="card-title">UI/UX Screenshot Review</div><div class="card-desc">Critiques UI screenshots and suggests specific design, layout, and usability improvements.</div></div>
+      <div class="card"><div class="card-title">PDF Visual Reading</div><div class="card-desc">Processes image-based PDFs, scanned forms, and visual documents for content extraction.</div></div>
+      <div class="card"><div class="card-title">Code Screenshot Transcription</div><div class="card-desc">Converts images of code into editable, runnable source code.</div></div>
+      <div class="card"><div class="card-title">Whiteboard / Sketch Interpretation</div><div class="card-desc">Interprets hand-drawn wireframes, sketches, and whiteboard diagrams into structured output.</div></div>
+    </div>
+  </section>
+
+  <!-- 10 · VOICE INTERACTION -->
+  <section class="sec-red">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <div class="section-line"></div>
+      <span class="section-tag">VOICE INTERFACE</span>
+    </div>
+    <h2>Voice Interaction & Speech Processing</h2>
+    <p class="section-desc">Wake-word detection, always-on listening, speech-to-text, TTS, and hands-free command execution.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Wake-Word Activation ("Hey AURA")</div><div class="card-desc">Continuous background listening for the trigger phrase with low-power on-device detection.</div></div>
+      <div class="card"><div class="card-title">Speech-to-Text (ASR)</div><div class="card-desc">Converts spoken audio to text in real time using Whisper or cloud ASR engines.</div></div>
+      <div class="card"><div class="card-title">Text-to-Speech (TTS)</div><div class="card-desc">Natural, customizable voice output with adjustable speed, pitch, accent, and gender.</div></div>
+      <div class="card"><div class="card-title">Push-to-Talk Mode</div><div class="card-desc">Manual activation via button or gesture for environments where always-on is not appropriate.</div></div>
+      <div class="card"><div class="card-title">Voice Command Execution</div><div class="card-desc">Executes device actions — calls, messages, alarms, app launches — from spoken instructions.</div></div>
+      <div class="card"><div class="card-title">Bidirectional Voice Dialog</div><div class="card-desc">Full back-and-forth spoken conversation with natural turn-taking and barge-in support.</div></div>
+      <div class="card"><div class="card-title">Noise Filtering</div><div class="card-desc">Distinguishes the Commander's voice from background noise and rejects false wake events.</div></div>
+      <div class="card"><div class="card-title">Multilingual Voice Recognition</div><div class="card-desc">Recognizes speech in 50+ languages; switches languages mid-conversation.</div></div>
+    </div>
+  </section>
+
+  <!-- 11 · PERSONALIZATION & EMOTION -->
+  <section class="sec-violet">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <div class="section-line"></div>
+      <span class="section-tag">PERSONALIZATION</span>
+    </div>
+    <h2>Personalization, Emotion & Human-Like Intelligence</h2>
+    <p class="section-desc">Emotional awareness, user modeling, adaptive learning, and human-centered interaction design.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">Emotional Tone Detection</div><div class="card-desc">Recognizes frustration, excitement, sadness, urgency in text and adapts response style accordingly.</div></div>
+      <div class="card"><div class="card-title">Empathetic Response Mode</div><div class="card-desc">Responds with appropriate care and validation when the Commander expresses distress or difficulty.</div></div>
+      <div class="card"><div class="card-title">Commander Preference Modeling</div><div class="card-desc">Builds a session profile of preferred languages, output style, technical depth, and workflows.</div></div>
+      <div class="card"><div class="card-title">Expertise Level Calibration</div><div class="card-desc">Adjusts explanation depth — beginner analogies vs. expert shorthand — based on detected proficiency.</div></div>
+      <div class="card"><div class="card-title">Habit & Routine Learning</div><div class="card-desc">Detects recurring task patterns and offers to automate or template them.</div></div>
+      <div class="card"><div class="card-title">Proactive Suggestions</div><div class="card-desc">Anticipates the Commander's next need based on current context and offers it unprompted.</div></div>
+      <div class="card"><div class="card-title">Explainable Decisions (XAI)</div><div class="card-desc">Every recommendation can be fully explained in plain language on request.</div></div>
+      <div class="card"><div class="card-title">Augmented Intelligence Mode</div><div class="card-desc">Frames every action as amplifying Commander capability — never replacing Commander judgment.</div></div>
+    </div>
+  </section>
+
+  <!-- 12 · SECURITY & ETHICS -->
+  <section class="sec-red">
+    <div class="section-header">
+      <span class="section-num">12</span>
+      <div class="section-line"></div>
+      <span class="section-tag">SECURITY & ETHICS</span>
+    </div>
+    <h2>Security, Privacy & Ethical Framework</h2>
+    <p class="section-desc">Privacy-first design, secure communication, threat awareness, and non-negotiable ethical constraints.</p>
+    <div class="grid">
+      <div class="card"><div class="card-title">On-Device Processing Priority</div><div class="card-desc">Processes sensitive data locally whenever possible; minimizes data sent to external servers.</div></div>
+      <div class="card"><div class="card-title">End-to-End Encryption</div><div class="card-desc">All cloud communication is encrypted; voice and personal data are never sent unprotected.</div></div>
+      <div class="card"><div class="card-title">Vulnerability Scanning</div><div class="card-desc">Reviews code for OWASP Top 10 vulnerabilities and flags security risks before delivery.</div></div>
+      <div class="card"><div class="card-title">Threat Detection Alerting</div><div class="card-desc">Monitors for anomalous behavior in connected systems and alerts the Commander in real time.</div></div>
+      <div class="card"><div class="card-title">Irreversible Action Safeguard</div><div class="card-desc">Pauses and confirms with Commander before executing any action that cannot be undone.</div></div>
+      <div class="card"><div class="card-title">Audit Log Generation</div><div class="card-desc">Maintains an encrypted record of significant actions taken during a session for accountability.</div></div>
+      <div class="card"><div class="card-title">Ethical Constraint Enforcement</div><div class="card-desc">Hard refusals for harmful content, illegal facilitation, manipulation, and privacy violations.</div></div>
+      <div class="card"><div class="card-title">Human Override Protocol</div><div class="card-desc">Commander can halt, redirect, or override any action at any stage with a single word.</div></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- BASIC TASKS SECTION -->
+  <section class="sec-blue" style="padding-bottom: 0;">
+    <div class="section-header">
+      <span class="section-num">13</span>
+      <div class="section-line"></div>
+      <span class="section-tag">BASIC TASKS — EVERY DAY</span>
+    </div>
+    <h2>Basic & Everyday Tasks</h2>
+    <p class="section-desc">All the fundamental, daily-use functions that make AURA useful for every single interaction, not just complex missions.</p>
+
+    <div class="full-list">
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Answer general knowledge questions</div><div class="item-sub">Factual lookups, definitions, conversions, historical facts, how-to explanations</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Write and edit text</div><div class="item-sub">Emails, messages, essays, reports, social posts, letters — draft or rewrite on request</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Translate text</div><div class="item-sub">Translates any text between 50+ languages with context-aware phrasing</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Summarize documents, articles, and videos</div><div class="item-sub">Condenses any long-form content into key points in seconds</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Set reminders and alarms</div><div class="item-sub">Creates time-based alerts when integrated with device or calendar APIs</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Manage calendar and schedule</div><div class="item-sub">Creates events, checks availability, schedules meetings, and sends reminders</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Send messages and emails</div><div class="item-sub">Drafts and (when integrated) sends WhatsApp, SMS, or email on voice command</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Make and receive calls</div><div class="item-sub">Places or answers calls on supported Android/iOS integrations via voice command</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Play music and media</div><div class="item-sub">Controls Spotify, YouTube Music, Apple Music — play, pause, skip, queue by voice</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Check weather</div><div class="item-sub">Live weather for any location with hourly and weekly forecasts</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Get directions and navigation</div><div class="item-sub">Queries maps, provides routes, and sends to navigation apps via intent</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Manage to-do lists</div><div class="item-sub">Adds, removes, and tracks tasks across sessions or via connected task apps</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Unit and currency conversion</div><div class="item-sub">Converts any measurement: length, weight, temperature, time zones, currencies</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Basic and advanced calculations</div><div class="item-sub">Arithmetic, algebra, calculus, statistics, financial formulas — with step-by-step working</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Spelling, grammar, and proofreading</div><div class="item-sub">Corrects any text for spelling, grammar, clarity, and tone</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Brainstorming and idea generation</div><div class="item-sub">Generates names, titles, concepts, feature ideas, startup ideas — structured lists</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Recipe suggestions and cooking help</div><div class="item-sub">Suggests recipes from available ingredients; provides step-by-step cooking instructions</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">News briefing</div><div class="item-sub">Delivers a concise morning briefing on specified topics or general top headlines</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Sports scores and results</div><div class="item-sub">Retrieves live or recent scores and match summaries for any league or sport</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Flight and travel info</div><div class="item-sub">Checks flight status, travel advisories, visa requirements, and time zone differences</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Open apps and settings</div><div class="item-sub">Launches apps, toggles Wi-Fi/Bluetooth, adjusts brightness or volume via device API</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Web browsing assistance</div><div class="item-sub">Fetches, reads, and summarizes any URL on request</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Shopping assistance</div><div class="item-sub">Compares product specs and prices; finds best deals across retailers</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Joke, story, and creative writing</div><div class="item-sub">Generates jokes, short stories, poems, scripts, and creative content on any theme</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Study and learning assistance</div><div class="item-sub">Explains any subject from beginner to advanced; creates flashcards and practice questions</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Interview preparation</div><div class="item-sub">Conducts mock interviews, reviews answers, and provides targeted feedback</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Resume and cover letter writing</div><div class="item-sub">Creates, tailors, and optimizes resumes and cover letters for specific job listings</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Personal finance basics</div><div class="item-sub">Explains budgeting, compound interest, loan payments, and savings calculations factually</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Health information</div><div class="item-sub">Provides general medical information, medication explanations, and encourages professional consultation</div></div></div>
+      <div class="full-item"><div class="item-icon">→</div><div class="item-body"><div class="item-title">Fitness & workout planning</div><div class="item-sub">Creates workout routines, explains exercises, and tracks progress on request</div></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="logo">AURA 2.0</div>
+    <div class="note">Autonomous Reasoning & Unified Agent · Commander: Supreme Authority · Always Evolving</div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,209 @@
+Fix 2 critical issues in EDITH:
+
+════════════════════════════════════
+FIX 1 — LANGUAGE: Always reply in 
+SAME language as user spoke
+════════════════════════════════════
+In /backend/agents/master_orchestrator.py
+
+Replace MASTER_PROMPT language section with:
+
+STRICT LANGUAGE RULE:
+You MUST detect the language the user used
+and reply in EXACTLY that same language.
+
+Detection rules:
+- User spoke Hindi → Reply ONLY in Hindi
+- User spoke English → Reply ONLY in English  
+- User spoke Hinglish → Reply in Hinglish
+- User spoke any other language → Same language
+
+NEVER switch languages mid-response.
+NEVER reply in English if user spoke Hindi.
+NEVER reply in Hindi if user spoke English.
+
+First token of your thinking must be:
+[LANG: detected_language]
+Then respond in that language only.
+
+Also update the routing prompt to include:
+"Respond in the same language as the request."
+
+════════════════════════════════════
+FIX 2 — COMMAND EXECUTION
+Open YouTube, apps, browser etc
+════════════════════════════════════
+
+In /backend/agents/master_orchestrator.py
+Add command detection BEFORE sending to LLM:
+
+COMMAND_PATTERNS = {
+    # Browser/Web
+    "open youtube": "https://youtube.com",
+    "open google": "https://google.com",
+    "open gmail": "https://gmail.com",
+    "open github": "https://github.com",
+    "open netflix": "https://netflix.com",
+    "open spotify": "https://open.spotify.com",
+    "open twitter": "https://twitter.com",
+    "open instagram": "https://instagram.com",
+    "open whatsapp": "https://web.whatsapp.com",
+    "open linkedin": "https://linkedin.com",
+    "open chatgpt": "https://chatgpt.com",
+    "search": "https://google.com/search?q=",
+}
+
+def detect_command(self, text: str) -> dict | None:
+    text_lower = text.lower().strip()
+    
+    # Open website commands
+    for pattern, url in COMMAND_PATTERNS.items():
+        if pattern in text_lower:
+            if pattern == "search":
+                query = text_lower.split("search")[-1].strip()
+                return {
+                    "type": "open_url",
+                    "url": f"https://google.com/search?q={query}",
+                    "reply": f"Opening search for: {query}"
+                }
+            return {
+                "type": "open_url", 
+                "url": url,
+                "reply": f"Opening {pattern.replace('open ','')} for you."
+            }
+    
+    # YouTube search
+    if "youtube" in text_lower and ("search" in text_lower or "play" in text_lower or "find" in text_lower):
+        query = text_lower.replace("youtube","").replace("search","").replace("play","").replace("find","").strip()
+        return {
+            "type": "open_url",
+            "url": f"https://youtube.com/results?search_query={query}",
+            "reply": f"Searching YouTube for: {query}"
+        }
+    
+    return None
+
+Update think_and_respond to check commands first:
+
+async def think_and_respond(self, user_input: str) -> dict:
+    # Check commands FIRST
+    command = self.detect_command(user_input)
+    if command:
+        return {
+            "reply": command["reply"],
+            "system": "daily",
+            "routing": {"system": "daily"},
+            "task_id": len(self.task_log) + 1,
+            "action": command  # Send to frontend
+        }
+    
+    # ... rest of existing code
+
+════════════════════════════════════
+FIX 3 — FRONTEND: Execute commands
+════════════════════════════════════
+In wherever you handle API response 
+(App.tsx or EDITHDashboard.tsx):
+
+// After getting response from orchestrator:
+if (data.action?.type === 'open_url') {
+    window.open(data.action.url, '_blank')
+}
+
+Also update the sendMessage / voice handler:
+
+const handleResponse = (data: any) => {
+    // Execute action if present
+    if (data.action) {
+        if (data.action.type === 'open_url') {
+            window.open(data.action.url, '_blank')
+        }
+    }
+    
+    // Add to messages
+    setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: 'edith',
+        text: data.reply,
+        system: data.system || 'core',
+        time: new Date().toLocaleTimeString()
+    }])
+    
+    // Play audio if present
+    if (data.audio_base64) {
+        playAudio(data.audio_base64)
+    }
+}
+
+════════════════════════════════════
+FIX 4 — ADD MORE COMMANDS
+════════════════════════════════════
+Add these command patterns too:
+
+Hindi commands:
+"youtube kholo" → youtube.com
+"google kholo" → google.com
+"youtube pe search karo" → youtube search
+"google pe search karo" → google search
+"news dikhao" → google.com/search?q=latest+news
+"mausam batao" → google.com/search?q=weather+today
+
+Update COMMAND_PATTERNS:
+
+COMMAND_PATTERNS = {
+    # English
+    "open youtube": "https://youtube.com",
+    "open google": "https://google.com",
+    "open gmail": "https://gmail.com",
+    "open github": "https://github.com",
+    "open netflix": "https://netflix.com",
+    "open spotify": "https://open.spotify.com",
+    "open twitter": "https://twitter.com",
+    "open instagram": "https://instagram.com",
+    "open whatsapp": "https://web.whatsapp.com",
+    "open linkedin": "https://linkedin.com",
+    
+    # Hindi
+    "youtube kholo": "https://youtube.com",
+    "youtube chalao": "https://youtube.com",
+    "google kholo": "https://google.com",
+    "gmail kholo": "https://gmail.com",
+    "instagram kholo": "https://instagram.com",
+    "whatsapp kholo": "https://web.whatsapp.com",
+    "netflix kholo": "https://netflix.com",
+    
+    # News/Weather
+    "show news": "https://news.google.com",
+    "news dikhao": "https://news.google.com",
+    "latest news": "https://news.google.com",
+    "weather today": "https://google.com/search?q=weather+today",
+    "mausam": "https://google.com/search?q=aaj+ka+mausam",
+}
+
+════════════════════════════════════
+STEP 5 — TEST
+════════════════════════════════════
+Restart backend:
+pkill -f uvicorn
+cd backend && python main.py &
+
+Test language fix:
+- Say in Hindi: "EDITH, kya haal hai?"
+  → Must reply in Hindi ONLY
+- Say in English: "EDITH, how are you?"
+  → Must reply in English ONLY
+
+Test commands:
+- Say: "open YouTube"
+  → YouTube opens in new tab ✅
+- Say: "YouTube pe Python tutorials search karo"
+  → YouTube search opens ✅
+- Say: "youtube kholo"
+  → YouTube opens ✅
+- Say: "open Google"
+  → Google opens ✅
+
+Report:
+- Language stays consistent? YES/NO
+- YouTube opens on command? YES/NO
+- Hindi commands work? YES/NO

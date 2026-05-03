@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "E.D.I.T.H. 2.0"
+version = "1.0.0"
+id = "artifacts/edith"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24839
+
+[services.development]
+run = "pnpm --filter @workspace/edith run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/edith", "run", "build" ]
+publicDir = "artifacts/edith/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24839"
+BASE_PATH = "/"

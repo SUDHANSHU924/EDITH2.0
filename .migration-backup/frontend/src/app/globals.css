@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: #050505;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#__next, main {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Ensure input and textarea visibility */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+  opacity: 1 !important;
+}
+
+input, textarea {
+  color: #FFFFFF !important;
+  caret-color: #00F0FF !important;
+}

@@ -1,0 +1,337 @@
+All api key   NVIDIA Models List (Get API Keys):
+System	Model	NVIDIA Model api
+01 Core/Convo	LLaMA 3.3 70B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="meta/llama-3.3-70b-instruct",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="") 
+02 Planning	DeepSeek R1	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="deepseek-ai/deepseek-r1-distill-llama-8b",
+  messages=[{"role":"user","content":""}],
+  temperature=0.6,
+  top_p=0.7,
+  max_tokens=4096,
+  stream=True
+)
+
+for chunk in completion:
+  if not getattr(chunk, "choices", None):
+    continue
+  if chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+
+03 Code	LLaMA 3.1 70B	rom openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="meta/llama-3.3-70b-instruct",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="") 
+04 Files	Mistral Large	
+
+import requests, base64
+
+invoke_url = "https://integrate.api.nvidia.com/v1/chat/completions"
+stream = True
+
+
+headers = {
+  "Authorization": "Bearer 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",
+  "Accept": "text/event-stream" if stream else "application/json"
+}
+
+payload = {
+  "model": "mistralai/mistral-large-3-675b-instruct-2512",
+  "messages": [{"role":"user","content":""}],
+  "max_tokens": 2048,
+  "temperature": 0.15,
+  "top_p": 1.00,
+  "frequency_penalty": 0.00,
+  "presence_penalty": 0.00,
+  "stream": stream
+}
+
+
+
+response = requests.post(invoke_url, headers=headers, json=payload)
+
+if stream:
+    for line in response.iter_lines():
+        if line:
+            print(line.decode("utf-8"))
+else:
+    print(response.json())
+05 Search	LLaMA 3.1 70B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="meta/llama-3.3-70b-instruct",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+
+06 Learning	Qwen 2.5 72B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="deepseek-ai/deepseek-r1-distill-qwen-32b",
+  messages=[{"role":"user","content":""}],
+  temperature=0.6,
+  top_p=0.7,
+  max_tokens=4096,
+  stream=True
+)
+
+for chunk in completion:
+  if not getattr(chunk, "choices", None):
+    continue
+  if chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+
+07 ML/AI	LLaMA 3.1 70B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="meta/llama-3.3-70b-instruct",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+08 IoT	Mistral 7B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="mistralai/mistral-7b-instruct-v0.3",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+
+09 Vision	LLaVA 1.6	
+import requests, base64, os
+
+invoke_url = "https://integrate.api.nvidia.com/v1/chat/completions"
+stream = True
+
+
+image_path = "image.png"
+ext = os.path.splitext(image_path)[1].lower()
+mime_by_ext = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp"
+}
+if ext not in mime_by_ext:
+  raise ValueError("Unsupported image type. Supported: png, jpg, jpeg, webp")
+image_mime = mime_by_ext[ext]
+with open(image_path, "rb") as f:
+  image_b64 = base64.b64encode(f.read()).decode()
+
+headers = {
+  "Authorization": "Bearer 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",
+  "Accept": "text/event-stream" if stream else "application/json"
+}
+
+payload = {
+  "model": "meta/llama-4-scout-17b-16e-instruct",
+  "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Is there a car in this image?"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": f"data:{image_mime};base64,{image_b64}"
+            }
+          }
+        ]
+      }
+    ],
+  "max_tokens": 512,
+  "temperature": 1.00,
+  "top_p": 1.00,
+  "frequency_penalty": 0.00,
+  "presence_penalty": 0.00,
+  "stream": stream
+}
+
+response = requests.post(invoke_url, headers=headers, json=payload)
+
+if stream:
+    for line in response.iter_lines():
+        if line:
+            print(line.decode("utf-8"))
+else:
+    print(response.json())
+10 Voice	Whisper Large	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
+11 Personal	LLaMA 3.3 70B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="meta/llama-3.3-70b-instruct",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="") 
+12 Security	LLaMA 3.1 70B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="meta/llama-3.3-70b-instruct",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+13 Daily	Gemma 2 27B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="mistralai/mistral-7b-instruct-v0.3",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+14 Hacker	DeepSeek R1	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="deepseek-ai/deepseek-r1-distill-llama-8b",
+  messages=[{"role":"user","content":""}],
+  temperature=0.6,
+  top_p=0.7,
+  max_tokens=4096,
+  stream=True
+)
+
+for chunk in completion:
+  if not getattr(chunk, "choices", None):
+    continue
+  if chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+15 Satellite	LLaMA 3.1 70B	from openai import OpenAI
+
+client = OpenAI(
+  base_url = "https://integrate.api.nvidia.com/v1",
+  api_key = "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"
+)
+
+completion = client.chat.completions.create(
+  model="meta/llama-3.3-70b-instruct",
+  messages=[{"role":"user","content":""}],
+  temperature=0.2,
+  top_p=0.7,
+  max_tokens=1024,
+  stream=True
+)
+
+for chunk in completion:
+  if chunk.choices and chunk.choices[0].delta.content is not None:
+    print(chunk.choices[0].delta.content, end="")
+
