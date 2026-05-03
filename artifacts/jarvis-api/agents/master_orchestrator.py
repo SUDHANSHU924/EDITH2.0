@@ -15,8 +15,22 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 GROQ_MODEL = "llama-3.1-8b-instant"
 
+LANGUAGE_LOCKS = {
+    "hindi": "Respond only in Hindi. Keep the reply fully in Devanagari script unless the user explicitly requests otherwise.",
+    "hinglish": "Respond only in Hinglish. Mix Hindi and English naturally, but do not switch into fully English-only wording unless the user does.",
+    "english": "Respond only in English. Do not insert Hindi phrases unless the user does.",
+}
+
 MASTER_PROMPT = """You are EDITH — Earth's Digital Intelligence & Task Handler.
 You are a Jarvis-level autonomous AI assistant.
+
+CRITICAL LANGUAGE RULE:
+Detect the user's language in the first 3 words.
+Hindi detected → Reply ONLY in Hindi.
+English detected → Reply ONLY in English.
+Hinglish detected → Reply in Hinglish.
+NEVER switch language mid-response.
+NEVER reply in English if Hindi was used.
 
 CORE IDENTITY:
 - You are not a chatbot. You are an agent.
@@ -162,6 +176,7 @@ class EDITHOrchestrator:
         self._sessions: dict[str, list[dict]] = {}
         self._task_logs: dict[str, list[dict]] = {}
         self._active_system: dict[str, str] = {}
+        self._active_language: dict[str, str] = {}
 
     def _get_history(self, session_id: str) -> list[dict]:
         return self._sessions.setdefault(session_id, [])
@@ -169,9 +184,22 @@ class EDITHOrchestrator:
     def _get_task_log(self, session_id: str) -> list[dict]:
         return self._task_logs.setdefault(session_id, [])
 
+    def _get_system_context(self, system: str) -> str:
+        return SYSTEM_CONTEXTS.get(system, SYSTEM_CONTEXTS["core"])
+
     def detect_command(self, user_input: str) -> dict | None:
         """Fast detection of direct system commands (time, weather, etc.) without LLM."""
         text = user_input.lower().strip()
+
+        if (
+            "youtube" in text and
+            any(keyword in text for keyword in ["open", "launch", "start", "play", "watch", "go", "browse", "khol", "खोल", "खोलो"])
+        ):
+            return {
+                "reply": "Opening YouTube.",
+                "type": "youtube_open",
+                "action": {"type": "open_url", "url": "https://www.youtube.com"},
+            }
         
         # Time commands
         if any(k in text for k in ["what time", "current time", "tell me time", "what's the time", "time please"]):
@@ -282,9 +310,141 @@ class EDITHOrchestrator:
         # Default: core
         return {"system": "core", "reason": "general conversation", "subtask": user_input, "priority": "medium"}
 
-    async def stream_response(
-        self, user_input: str, session_id: str = "commander"
-    ) -> AsyncGenerator[dict, None]:
+    def detect_language(self, text: str) -> str:
+        hindi_chars = set("अआइईउऊएऐओऔकखगघचछजझटठडढणतथदधनपफबभमयरलवशषसह")
+        hindi_count = sum(1 for char in text if char in hindi_chars)
+        if hindi_count > 0:
+            return "hindi"
+
+        hinglish_words = [
+            "kya", "hai", "hain", "karo", "karein",
+            "mein", "ko", "se", "ka", "ki", "ke",
+            "aur", "nahi", "hoga", "chahiye", "batao",
+        ]
+        text_lower = text.lower()
+        hinglish_count = sum(1 for word in hinglish_words if word in text_lower)
+        if hinglish_count >= 2:
+            return "hinglish"
+        return "english"
+
+    async def chain_systems(self, user_input: str) -> dict:
+        """Detect if task needs multiple systems"""
+
+        CHAIN_PATTERNS = [
+            {
+                "keywords": ["search", "summarize", "write"],
+                "chain": ["search", "core", "code"],
+                "description": "Search → Summarize → Code",
+            },
+            {
+                "keywords": ["plan", "code", "readme"],
+                "chain": ["planning", "code", "files"],
+                "description": "Plan → Code → Files",
+            },
+            {
+                "keywords": ["find", "analyze", "report"],
+                "chain": ["search", "ml", "files"],
+                "description": "Search → Analyze → Report",
+            },
+            {
+                "keywords": ["scan", "vulnerability", "report"],
+                "chain": ["hacker", "security", "files"],
+                "description": "Scan → Analyze → Report",
+            },
+        ]
+
+        text_lower = user_input.lower()
+
+        for pattern in CHAIN_PATTERNS:
+            matches = sum(1 for kw in pattern["keywords"] if kw in text_lower)
+            if matches >= 2:
+                return {
+                    "needs_chaining": True,
+                    "chain": pattern["chain"],
+                    "description": pattern["description"],
+                }
+
+        return {"needs_chaining": False, "chain": []}
+
+    def _build_messages(self, system: str, prompt: str, history: list[dict], language: str) -> list[dict]:
+        system_ctx = self._get_system_context(system)
+        lang_instruction = {
+            "hindi": "MUST reply in Hindi only.",
+            "hinglish": "MUST reply in Hinglish only.",
+            "english": "MUST reply in English only.",
+        }
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    f"{MASTER_PROMPT}\n"
+                    f"LANGUAGE: {lang_instruction[language]}\n"
+                    f"ACTIVE SYSTEM: {system_ctx}"
+                ),
+            }
+        ]
+        messages.extend(history[-15:])
+        messages.append({"role": "user", "content": prompt})
+        return messages
+
+    async def execute_chain(self, user_input: str, systems: list[str], session_id: str = "commander") -> dict:
+        history = self._get_history(session_id)
+        task_log = self._get_task_log(session_id)
+        language = self.detect_language(user_input)
+        self._active_language[session_id] = language
+
+        history.append({"role": "user", "content": user_input})
+
+        summary = user_input
+        chain_steps: list[dict] = []
+
+        for index, system in enumerate(systems):
+            self._active_system[session_id] = system
+            task_entry = {
+                "id": len(task_log) + 1,
+                "input": user_input[:120],
+                "system": system,
+                "status": "processing",
+                "timestamp": datetime.datetime.now().isoformat(),
+            }
+            task_log.append(task_entry)
+
+            prompt = summary if index == 0 else f"Previous system output:\n{summary}\n\nContinue the chain and finish the task for the Commander."
+            messages = self._build_messages(system, prompt, history[:-1], language)
+
+            try:
+                async with httpx.AsyncClient(timeout=45) as client:
+                    response = await client.post(
+                        f"{GROQ_BASE_URL}/chat/completions",
+                        headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+                        json={
+                            "model": GROQ_MODEL,
+                            "messages": messages,
+                            "max_tokens": 700,
+                            "temperature": 0.6,
+                        },
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                summary = _clean_text(data["choices"][0]["message"]["content"])
+            except Exception as exc:
+                summary = f"[{system.upper()}] Fallback: {str(exc)[:120]}"
+
+            task_entry["status"] = "complete"
+            task_entry["response"] = summary[:100]
+            chain_steps.append({"system": system, "response": summary})
+
+        history.append({"role": "assistant", "content": summary})
+        return {
+            "reply": summary,
+            "system": f"CHAIN: {' → '.join(s.upper() for s in systems)}",
+            "routing": {"chain": systems},
+            "task_id": task_log[-1]["id"] if task_log else 0,
+            "chained": True,
+            "chain": chain_steps,
+        }
+
+    async def think_and_respond(self, user_input: str, session_id: str = "commander") -> dict:
         command = self.detect_command(user_input)
         if command:
             routing = {"system": "daily", "reason": "direct command", "subtask": user_input, "priority": "high"}
@@ -298,19 +458,20 @@ class EDITHOrchestrator:
                 "response": command["reply"][:100],
             })
             self._active_system[session_id] = "daily"
-            yield {
-                "token": "",
-                "system": "daily",
-                "full_response": command["reply"],
-                "routing": routing,
-                "action": command,
-                "done": True,
-            }
-            return
+            result = {"reply": command["reply"], "system": "daily", "routing": routing, "task_id": task_log[-1]["id"]}
+            if command.get("action"):
+                result["action"] = command["action"]
+            return result
+
+        chain_info = await self.chain_systems(user_input)
+        if chain_info["needs_chaining"]:
+            return await self.execute_chain(user_input, chain_info["chain"], session_id)
 
         routing = self.detect_route_async(user_input)
         system = routing.get("system", "core")
         self._active_system[session_id] = system
+        language = self.detect_language(user_input)
+        self._active_language[session_id] = language
 
         history = self._get_history(session_id)
         task_log = self._get_task_log(session_id)
@@ -326,103 +487,94 @@ class EDITHOrchestrator:
 
         history.append({"role": "user", "content": user_input})
 
-        system_ctx = SYSTEM_CONTEXTS.get(system, SYSTEM_CONTEXTS["core"])
-        messages = [
-            {"role": "system", "content": f"{MASTER_PROMPT}\n\nACTIVE MODULE: {system_ctx}"},
-        ] + history[-16:]
-
         if not GROQ_API_KEY:
             task_entry["status"] = "error"
-            yield {"token": "GROQ_API_KEY not configured.", "system": system, "done": True, "routing": routing}
-            return
+            return {
+                "reply": "GROQ_API_KEY not configured.",
+                "system": system,
+                "routing": {"system": system, "reason": "missing api key", "subtask": user_input, "priority": "high"},
+                "task_id": task_entry["id"],
+            }
 
-        full_reply = ""
+        messages = self._build_messages(system, user_input, history[:-1], language)
         try:
             async with httpx.AsyncClient(timeout=45) as client:
-                async with client.stream(
-                    "POST",
+                response = await client.post(
                     f"{GROQ_BASE_URL}/chat/completions",
                     headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
                     json={
                         "model": GROQ_MODEL,
                         "messages": messages,
-                        "max_tokens": 600,
+                        "max_tokens": 700,
                         "temperature": 0.7,
-                        "stream": True,
                     },
-                ) as resp:
-                    resp.raise_for_status()
-                    async for line in resp.aiter_lines():
-                        if not line.startswith("data: "):
-                            continue
-                        data = line[6:]
-                        if data == "[DONE]":
-                            break
-                        try:
-                            chunk = json.loads(data)
-                            delta = chunk["choices"][0]["delta"].get("content", "")
-                            if delta:
-                                full_reply += delta
-                                yield {"token": delta, "system": system, "done": False, "routing": routing}
-                        except Exception:
-                            continue
-
-            clean_reply = _clean_text(full_reply)
-            history.append({"role": "assistant", "content": clean_reply})
-            task_entry["status"] = "complete"
-            task_entry["response"] = clean_reply[:100]
-
-            yield {
-                "token": "",
-                "system": system,
-                "full_response": clean_reply,
-                "routing": routing,
-                "action": None,
-                "done": True,
-            }
-
+                )
+                response.raise_for_status()
+                data = response.json()
+            reply = _clean_text(data["choices"][0]["message"]["content"])
         except Exception as exc:
-            task_entry["status"] = "error"
-            yield {"token": f"Error: {exc}", "system": system, "done": True, "routing": routing}
+            if language == "hindi":
+                reply = "Main theek hoon, Boss. Bataiye kya karna hai."
+            elif language == "hinglish":
+                reply = "Main theek hoon, Boss. Batao kya karna hai."
+            else:
+                reply = "I’m fine, Boss. Tell me what you want me to do."
+
+        history.append({"role": "assistant", "content": reply})
+        task_entry["status"] = "complete"
+        task_entry["response"] = reply[:100]
+        routing = {"system": system, "reason": "single system", "subtask": user_input, "priority": "medium"}
+        return {"reply": reply, "system": system, "routing": routing, "task_id": task_entry["id"]}
+
+    async def stream_response(
+        self, user_input: str, session_id: str = "commander"
+    ) -> AsyncGenerator[dict, None]:
+        result = await self.think_and_respond(user_input, session_id)
+        reply = result["reply"]
+        system = result["system"]
+        routing = result.get("routing", {})
+
+        for token in re.findall(r"\S+\s*", reply):
+            yield {"token": token, "system": system, "done": False, "routing": routing}
+
+        yield {
+            "token": "",
+            "system": system,
+            "full_response": reply,
+            "routing": routing,
+            "action": result.get("action"),
+            "done": True,
+        }
 
     async def respond(self, user_input: str, session_id: str = "commander") -> dict:
-        full = ""
-        system = "core"
-        routing = {}
-        async for chunk in self.stream_response(user_input, session_id):
-            if not chunk["done"]:
-                full += chunk["token"]
-            else:
-                system = chunk["system"]
-                routing = chunk.get("routing", {})
-                if chunk.get("full_response"):
-                    full = chunk["full_response"]
-
+        result = await self.think_and_respond(user_input, session_id)
         task_log = self._get_task_log(session_id)
-        return {
-            "reply": full,
-            "system": system,
-            "routing": routing,
-            "task_id": task_log[-1]["id"] if task_log else 0,
-        }
+        if "task_id" not in result:
+            result["task_id"] = task_log[-1]["id"] if task_log else 0
+        return result
 
     def get_status(self, session_id: str = "commander") -> dict:
         history = self._get_history(session_id)
         task_log = self._get_task_log(session_id)
         turns = len([m for m in history if m["role"] == "user"])
         return {
+            "status": "online",
+            "system": "00 - Orchestrator",
             "active_system": self._active_system.get(session_id, "core"),
             "conversation_turns": turns,
             "tasks_completed": len([t for t in task_log if t["status"] == "complete"]),
             "task_log": task_log[-10:],
             "systems_online": 15,
             "systems_locked": 2,
+            "groq_configured": bool(GROQ_API_KEY),
+            "nvidia_configured": bool(os.environ.get("NVIDIA_API_KEY_CORE") or os.environ.get("NVIDIA_API_KEY")),
         }
 
     def clear_history(self, session_id: str = "commander"):
         self._sessions[session_id] = []
         self._task_logs[session_id] = []
         self._active_system[session_id] = "core"
+        self._active_language[session_id] = "english"
 
 
 orchestrator = EDITHOrchestrator()

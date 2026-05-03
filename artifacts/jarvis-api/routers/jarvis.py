@@ -9,6 +9,9 @@ reasoning call (Groq, no tool access).
 import base64
 import os
 import asyncio
+import subprocess
+import webbrowser
+from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -153,6 +156,66 @@ async def ask(req: AskRequest):
 @router.post("/search")
 async def search(req: SearchRequest):
     return web_search(req.query, req.max_results)
+
+
+@router.post("/action")
+async def action(request: dict):
+    action_name = str(request.get("action", "")).strip().lower()
+    params = request.get("params", {}) or {}
+
+    try:
+        if action_name == "running_apps":
+            try:
+                import psutil
+
+                apps = []
+                for process in psutil.process_iter(["name", "pid"]):
+                    try:
+                        apps.append({
+                            "name": process.info.get("name"),
+                            "pid": process.info.get("pid"),
+                        })
+                    except Exception:
+                        pass
+                return {"status": "ok", "apps": apps[:20]}
+            except Exception:
+                result = subprocess.run(
+                    ["bash", "-lc", "ps -eo pid=,comm= | head -n 20"],
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                )
+                return {"status": "ok", "apps": result.stdout.strip().splitlines()}
+
+        if action_name == "list_files":
+            path = str(params.get("path", "."))
+            files = os.listdir(path)
+            return {"status": "ok", "files": files}
+
+        if action_name == "run_command":
+            cmd = str(params.get("cmd", ""))
+            if not cmd.strip():
+                raise HTTPException(status_code=400, detail="cmd is required")
+            result = subprocess.run(
+                cmd,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            return {"status": "ok", "output": result.stdout + result.stderr}
+
+        if action_name == "open_url":
+            url = str(params.get("url", ""))
+            if not url:
+                raise HTTPException(status_code=400, detail="url is required")
+            opened = webbrowser.open(url, new=2)
+            return {"status": "ok", "action": "open_url", "url": url, "opened": bool(opened)}
+
+        return {"error": f"Unknown: {action_name}"}
+
+    except Exception as exc:
+        return {"error": str(exc)}
 
 
 @router.get("/screenshot")

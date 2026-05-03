@@ -22,6 +22,7 @@ import {
   type DepartmentId,
 } from "@/departments";
 import type { Attachment } from "@/types/message.types";
+import Dashboard from "@/pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -220,6 +221,7 @@ function LandingPage() {
 }
 
 function CommanderPage() {
+  const [, navigate] = useLocation();
   const [securityMode, setSecurityMode] = useState(false);
   const [showSecurityOverlay, setShowSecurityOverlay] = useState(false);
   const [activeDepartment, setActiveDepartment] = useState<DepartmentId>("core");
@@ -615,6 +617,25 @@ function CommanderPage() {
                 accentColor={accentColor}
               />
 
+              <motion.button
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg"
+                style={{
+                  background: "rgba(0,240,255,0.06)",
+                  border: "1px solid rgba(0,240,255,0.16)",
+                  fontFamily: "JetBrains Mono, monospace",
+                  fontSize: "9px",
+                  color: "rgba(0,240,255,0.78)",
+                  letterSpacing: "0.05em",
+                }}
+                whileHover={{ scale: 1.03, background: "rgba(0,240,255,0.12)" }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate("/dashboard")}
+                title="Open dashboard view"
+              >
+                <ChevronUp size={10} />
+                DASHBOARD
+              </motion.button>
+
               <div className="w-px h-5" style={{ background: "rgba(255,255,255,0.07)" }} />
 
               {/* Commander override */}
@@ -737,6 +758,7 @@ function AppRouter() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/commander" component={CommanderPage} />
+      <Route path="/dashboard" component={Dashboard} />
     </Switch>
   );
 }

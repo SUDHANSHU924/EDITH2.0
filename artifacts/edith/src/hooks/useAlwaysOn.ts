@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const VOLUME_THRESHOLD = 0.008;
 const SILENCE_MS = 1800;
 const MIN_RECORD_MS = 600;
+const START_CONFIRMATIONS = 3;
+const RESTART_COOLDOWN_MS = 900;
+const NOISE_FLOOR_DECAY = 0.985;
+const NOISE_FLOOR_RISE = 0.015;
 
 export type AlwaysOnStatus = 'idle' | 'listening' | 'recording' | 'processing' | 'speaking';
 
@@ -24,6 +28,9 @@ export function useAlwaysOn(
   const speakingRef = useRef(false);
   const rafRef = useRef<number | null>(null);
   const recordStartRef = useRef(0);
+  const noiseFloorRef = useRef(0.004);
+  const speechHitRef = useRef(0);
+  const cooldownUntilRef = useRef(0);
   const enabledRef = useRef(enabled);
 
   useEffect(() => { enabledRef.current = enabled; }, [enabled]);
@@ -36,9 +43,16 @@ export function useAlwaysOn(
     try {
       const res = await fetch('/api/orchestrator/voice', { method: 'POST', body: form });
       const data = await res.json();
-      if (!data.transcript || data.transcript.length < 2) {
+      if (data.skipped || !data.transcript || data.transcript.trim().split(/\s+/).length < 2) {
         setStatus('listening');
         return;
+      }
+
+      if (data.action?.type === 'open_url' && data.action.url) {
+        const popup = window.open(data.action.url, '_blank', 'noopener,noreferrer');
+        if (!popup) {
+          window.location.assign(data.action.url);
+        }
       }
       
       // Play audio response ONLY if backend provided it
@@ -80,6 +94,8 @@ export function useAlwaysOn(
     recordingRef.current = false;
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+    cooldownUntilRef.current = Date.now() + RESTART_COOLDOWN_MS;
+    speechHitRef.current = 0;
   }, []);
 
   const startRecording = useCallback(() => {
@@ -121,16 +137,35 @@ export function useAlwaysOn(
 
   const monitorVolume = useCallback(() => {
     if (!analyserRef.current || !enabledRef.current) return;
-    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-    analyserRef.current.getByteFrequencyData(dataArray);
-    let sum = 0;
-    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-    const avg = sum / dataArray.length / 255;
+    const dataArray = new Uint8Array(analyserRef.current.fftSize);
+    analyserRef.current.getByteTimeDomainData(dataArray);
+    let sumSquares = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+      const centered = (dataArray[i] - 128) / 128;
+      sumSquares += centered * centered;
+    }
+    const avg = Math.sqrt(sumSquares / dataArray.length);
     setVolume(avg);
-    if (avg > VOLUME_THRESHOLD && !speakingRef.current) {
-      if (!recordingRef.current) startRecording();
+
+    const isInCooldown = Date.now() < cooldownUntilRef.current;
+    const startThreshold = Math.max(VOLUME_THRESHOLD, noiseFloorRef.current + NOISE_FLOOR_RISE, noiseFloorRef.current * 1.8);
+    const stopThreshold = Math.max(VOLUME_THRESHOLD * 0.75, noiseFloorRef.current + 0.004, noiseFloorRef.current * 1.2);
+
+    if (!recordingRef.current) {
+      noiseFloorRef.current = Math.max(0.002, noiseFloorRef.current * NOISE_FLOOR_DECAY + avg * (1 - NOISE_FLOOR_DECAY));
+      if (!isInCooldown && avg > startThreshold && !speakingRef.current) {
+        speechHitRef.current += 1;
+        if (speechHitRef.current >= START_CONFIRMATIONS) {
+          speechHitRef.current = 0;
+          startRecording();
+        }
+      } else if (avg <= startThreshold) {
+        speechHitRef.current = 0;
+      }
+    } else if (avg > stopThreshold) {
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = setTimeout(() => {
+        silenceTimerRef.current = null;
         if (recordingRef.current) stopRecording();
       }, SILENCE_MS);
     }
@@ -158,6 +193,9 @@ export function useAlwaysOn(
       analyser.smoothingTimeConstant = 0.3;
       source.connect(analyser);
       analyserRef.current = analyser;
+      noiseFloorRef.current = 0.004;
+      speechHitRef.current = 0;
+      cooldownUntilRef.current = 0;
       setStatus('listening');
       rafRef.current = requestAnimationFrame(monitorVolume);
     } catch (e: any) {
@@ -179,6 +217,8 @@ export function useAlwaysOn(
     analyserRef.current = null;
     speakingRef.current = false;
     recordingRef.current = false;
+    speechHitRef.current = 0;
+    cooldownUntilRef.current = 0;
     setStatus('idle');
     setVolume(0);
   }, [stopRecording]);

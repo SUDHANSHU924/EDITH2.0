@@ -1,4 +1,5 @@
 import os
+import env_loader
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.jarvis import router as jarvis_router

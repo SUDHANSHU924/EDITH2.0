@@ -122,6 +122,8 @@ async def chat(req: ChatRequest):
         "routing": result["routing"],
         "task_id": result["task_id"],
     }
+    if result.get("action"):
+        response["action"] = result["action"]
     if req.voice_response:
         tts_lang = "hindi" if (req.language or "").lower() in {"hi", "hindi"} else "hinglish_or_english"
         audio = await _tts(result["reply"], lang=tts_lang)
@@ -222,6 +224,9 @@ async def voice_pipeline(
             "system": result["system"],
             "routing": result["routing"],
         }
+
+        if result.get("action"):
+            response["action"] = result["action"]
 
         if voice_response:
             audio_out = await _tts(result["reply"], lang=lang_code)

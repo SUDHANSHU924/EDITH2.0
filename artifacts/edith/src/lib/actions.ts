@@ -25,13 +25,30 @@ export function stripActions(text: string): string {
 function openUrl(url: string): void {
   const target = url.trim();
   if (!target) return;
-  window.open(target, '_blank', 'noopener');
+  const popup = window.open(target, '_blank', 'noopener');
+  if (!popup) {
+    window.location.assign(target);
+  }
 }
 
 export function executeQuickCommand(text: string): boolean {
   const normalized = text.trim().toLowerCase();
   if (!normalized) return false;
-  if (normalized.includes('youtube') && (normalized.includes('open') || normalized.includes('khol') || normalized.includes('खोल'))) {
+  if (
+    normalized.includes('youtube') &&
+    (
+      normalized.includes('open') ||
+      normalized.includes('launch') ||
+      normalized.includes('start') ||
+      normalized.includes('play') ||
+      normalized.includes('watch') ||
+      normalized.includes('go') ||
+      normalized.includes('browse') ||
+      normalized.includes('khol') ||
+      normalized.includes('खोल') ||
+      normalized.includes('खोलो')
+    )
+  ) {
     openUrl('https://www.youtube.com');
     return true;
   }
@@ -41,6 +58,11 @@ export function executeQuickCommand(text: string): boolean {
     normalized === 'open the youtube' ||
     normalized === 'open yt' ||
     normalized === 'launch youtube' ||
+    normalized === 'start youtube' ||
+    normalized === 'play youtube' ||
+    normalized === 'watch youtube' ||
+    normalized === 'go to youtube' ||
+    normalized === 'open youtube website' ||
     normalized === 'youtube kholo' ||
     normalized === 'youtube khol' ||
     normalized === 'youtube खोलो' ||

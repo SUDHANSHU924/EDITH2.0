@@ -69,8 +69,22 @@ export function useOrchestrator(sessionId: string, department: string) {
       if (!content.trim() && !attachments?.length) return;
       if (isThinking) return;
 
+      const trimmed = content.trim();
+      if (executeQuickCommand(trimmed)) {
+        addMessage(
+          { role: "user", content: trimmed, timestamp: new Date().toISOString(), attachments },
+          department
+        );
+        addMessage(
+          { role: "assistant", content: "Opening YouTube.", timestamp: new Date().toISOString() },
+          department
+        );
+        fetchStatus();
+        return;
+      }
+
       addMessage(
-        { role: "user", content: content.trim() || "Attached files.", timestamp: new Date().toISOString(), attachments },
+        { role: "user", content: trimmed || "Attached files.", timestamp: new Date().toISOString(), attachments },
         department
       );
 
@@ -86,7 +100,7 @@ export function useOrchestrator(sessionId: string, department: string) {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
           body: JSON.stringify({
-            message: content.trim(),
+            message: trimmed,
             session_id: sessionId,
             voice_response: voiceResponse ?? false,
           }),
@@ -154,7 +168,7 @@ export function useOrchestrator(sessionId: string, department: string) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              message: content.trim(),
+              message: trimmed,
               session_id: sessionId,
               voice_response: voiceResponse ?? false,
             }),
