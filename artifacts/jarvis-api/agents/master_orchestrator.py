@@ -11,6 +11,9 @@ from typing import AsyncGenerator
 
 import httpx
 
+from agents.command_parser import parser
+from agents.os_engine import os_engine
+
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 GROQ_MODEL = "llama-3.1-8b-instant"
@@ -186,6 +189,41 @@ class EDITHOrchestrator:
 
     def _get_system_context(self, system: str) -> str:
         return SYSTEM_CONTEXTS.get(system, SYSTEM_CONTEXTS["core"])
+
+    def _format_os_reply(self, action_type: str, result: dict, action: dict) -> str:
+        if not result.get("success", True):
+            message = result.get("message") or result.get("error") or "Unknown error"
+            return f"Could not complete: {message}"
+
+        if action_type == "open_app":
+            return f"Done! {result.get('message', 'Opened the app.') }"
+        if action_type == "search":
+            query = action.get("query", "")
+            engine = action.get("engine", "google")
+            return f"Searching for '{query}' on {engine}."
+        if action_type == "close_app":
+            return f"Closed {action.get('app', 'the app')}."
+        if action_type == "volume":
+            return f"Volume set to {action.get('level', 0)}%."
+        if action_type == "screenshot":
+            return "Screenshot taken."
+        if action_type == "system_info":
+            cpu = result.get("cpu_percent")
+            memory = result.get("memory_percent")
+            if memory is None and isinstance(result.get("memory"), dict):
+                memory = result["memory"].get("percent_used")
+            disk = result.get("disk_percent")
+            if disk is None and isinstance(result.get("disk"), dict):
+                disk = result["disk"].get("percent_used")
+            return f"System: CPU {cpu}% | RAM {memory}% | Disk {disk}%"
+        if action_type == "running_apps":
+            apps = result.get("apps", [])[:5]
+            if isinstance(apps, list) and apps and isinstance(apps[0], dict):
+                app_names = [str(app.get("name") or app.get("pid")) for app in apps]
+            else:
+                app_names = [str(app) for app in apps]
+            return f"Running: {', '.join(app_names)} and {max(result.get('count', 0) - len(app_names), 0)} more."
+        return result.get("message", "Done!")
 
     def detect_command(self, user_input: str) -> dict | None:
         """Fast detection of direct system commands (time, weather, etc.) without LLM."""
@@ -445,23 +483,39 @@ class EDITHOrchestrator:
         }
 
     async def think_and_respond(self, user_input: str, session_id: str = "commander") -> dict:
-        command = self.detect_command(user_input)
-        if command:
-            routing = {"system": "daily", "reason": "direct command", "subtask": user_input, "priority": "high"}
+        os_action = parser.parse(user_input)
+        if os_action:
+            result = os_action["execute"]()
+            reply = self._format_os_reply(os_action["type"], result, os_action)
+
+            history = self._get_history(session_id)
             task_log = self._get_task_log(session_id)
+
+            history.append({"role": "user", "content": user_input})
+            history.append({"role": "assistant", "content": reply})
+
             task_log.append({
                 "id": len(task_log) + 1,
                 "input": user_input[:120],
-                "system": "daily",
-                "status": "complete",
+                "system": "os_control",
+                "status": "complete" if result.get("success", True) else "error",
                 "timestamp": datetime.datetime.now().isoformat(),
-                "response": command["reply"][:100],
+                "response": reply[:100],
+                "action": os_action["type"],
+                "result": result,
             })
-            self._active_system[session_id] = "daily"
-            result = {"reply": command["reply"], "system": "daily", "routing": routing, "task_id": task_log[-1]["id"]}
-            if command.get("action"):
-                result["action"] = command["action"]
-            return result
+
+            self._active_system[session_id] = "os_control"
+            self._active_language[session_id] = self.detect_language(user_input)
+
+            return {
+                "reply": reply,
+                "system": "os_control",
+                "action": {"type": os_action["type"], "params": {k: v for k, v in os_action.items() if k != "execute"}},
+                "result": result,
+                "routing": {"system": "os_control"},
+                "task_id": task_log[-1]["id"],
+            }
 
         chain_info = await self.chain_systems(user_input)
         if chain_info["needs_chaining"]:

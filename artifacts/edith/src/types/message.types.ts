@@ -18,4 +18,9 @@ export interface Message {
   isStreaming?: boolean;
   attachments?: Attachment[];
   kind?: "analysis" | "default";
+  screenshot_base64?: string;
+  action?: {
+    type: string;
+    params?: Record<string, unknown>;
+  };
 }

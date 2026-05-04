@@ -12,6 +12,7 @@ interface MessageBubbleProps {
   departmentColor?: string;
   attachments?: Attachment[];
   kind?: 'analysis' | 'default';
+  screenshot_base64?: string;
 }
 
 type ContentPart =
@@ -268,6 +269,7 @@ export function MessageBubble({
   departmentColor = '#00F0FF',
   attachments,
   kind = 'default',
+  screenshot_base64,
 }: MessageBubbleProps) {
   const isCommander = type === 'commander';
   const beamColor = securityMode ? '#FF2A4B' : departmentColor;
@@ -352,6 +354,16 @@ export function MessageBubble({
                   if (part.type === 'tasklog') return <TaskLogBlock key={i} content={part.content} color={beamColor} />;
                   return <TextContent key={i} content={part.content} color={beamColor} />;
                 })}
+                {screenshot_base64 && (
+                  <div className="my-3 rounded-xl overflow-hidden border" style={{ borderColor: beamColor + '30', maxWidth: '600px' }}>
+                    <img 
+                      src={`data:image/png;base64,${screenshot_base64}`} 
+                      alt="Screenshot" 
+                      className="w-full h-auto"
+                      style={{ display: 'block' }}
+                    />
+                  </div>
+                )}
               </div>
             </motion.div>
 

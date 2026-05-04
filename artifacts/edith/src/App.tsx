@@ -310,7 +310,7 @@ function CommanderPage() {
 
   const displayMessages =
     chatMessages.length === 0
-      ? [{ id: 1, type: "edith" as const, content: BOOT_MESSAGE, isThinking: false, departmentColor: "#00F0FF", attachments: undefined, kind: undefined }]
+       ? [{ id: 1, type: "edith" as const, content: BOOT_MESSAGE, isThinking: false, departmentColor: "#00F0FF", attachments: undefined, kind: undefined, screenshot_base64: undefined }]
       : chatMessages.map((m) => ({
           id: m.id ?? Date.now(),
           type: (m.role === "user" ? "commander" : "edith") as "commander" | "edith",
@@ -319,6 +319,7 @@ function CommanderPage() {
           departmentColor: currentDept.color,
           attachments: m.attachments,
           kind: m.kind,
+          screenshot_base64: m.screenshot_base64,
         }));
 
   const handleDepartmentChange = (deptId: DepartmentId) => {
@@ -702,6 +703,7 @@ function CommanderPage() {
                   departmentColor={message.departmentColor ?? currentDept.color}
                   attachments={message.attachments}
                   kind={message.kind}
+                  screenshot_base64={message.screenshot_base64}
                 />
               ))}
               {isThinking && chatMessages.length > 0 && chatMessages[chatMessages.length - 1]?.role === "user" && (

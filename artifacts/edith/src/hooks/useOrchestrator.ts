@@ -139,12 +139,17 @@ export function useOrchestrator(sessionId: string, department: string) {
                 }
                 if (chunk.full_response) {
                   const rawText = chunk.full_response;
-                  if (!executeQuickCommand(rawText)) {
-                    const cleanText = parseAndExecute(rawText);
-                    updateMessage(msgId, { content: cleanText || rawText, isStreaming: false }, department);
-                  } else {
-                    updateMessage(msgId, { content: rawText, isStreaming: false }, department);
+                  const updateData: any = { 
+                    content: (executeQuickCommand(rawText) ? rawText : parseAndExecute(rawText)) || rawText,
+                    isStreaming: false 
+                  };
+                  if (chunk.action?.result?.screenshot) {
+                    updateData.screenshot_base64 = chunk.action.result.screenshot;
                   }
+                  if (chunk.action?.result) {
+                    updateData.action = chunk.action;
+                  }
+                  updateMessage(msgId, updateData, department);
                 } else if (!hasContent) {
                   updateMessage(msgId, { content: "No response received. Please try again.", isStreaming: false }, department);
                 } else {
@@ -179,12 +184,17 @@ export function useOrchestrator(sessionId: string, department: string) {
               window.open(data.action.url, "_blank", "noopener,noreferrer");
             }
             const rawText = data.reply ?? "";
-            if (!executeQuickCommand(rawText)) {
-              const cleanText = parseAndExecute(rawText);
-              updateMessage(msgId, { content: cleanText || rawText || "No response.", isStreaming: false }, department);
-            } else {
-              updateMessage(msgId, { content: rawText || "No response.", isStreaming: false }, department);
+            const updateData: any = {
+              content: (executeQuickCommand(rawText) ? rawText : parseAndExecute(rawText)) || rawText || "No response.",
+              isStreaming: false
+            };
+            if (data.action?.result?.screenshot) {
+              updateData.screenshot_base64 = data.action.result.screenshot;
             }
+            if (data.action?.result) {
+              updateData.action = data.action;
+            }
+            updateMessage(msgId, updateData, department);
             if (data.routing) setLastRouting(data.routing);
             if (data.system) setActiveSystem(data.system);
           } else {
