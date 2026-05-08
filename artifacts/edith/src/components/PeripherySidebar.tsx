@@ -714,7 +714,7 @@ export function PeripherySidebar({
               {displayLogs.slice(0, 4).map((log, index) => {
                 const logColor = log.type === 'SYS' ? '#00F0FF' : log.type === 'RAG' ? '#7B61FF' : log.type === 'THREAT' ? '#FF2A4B' : '#F5A623';
                 return (
-                  <motion.div key={`log-${log.id}-${index}`}
+                  <motion.div key={log.id}
                     initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     className="flex items-start gap-2 mb-1.5">

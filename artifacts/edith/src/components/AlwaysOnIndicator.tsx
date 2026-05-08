@@ -4,14 +4,15 @@ import { useAlwaysOn } from '@/hooks/useAlwaysOn';
 import { parseAndExecute } from '@/lib/actions';
 
 interface Props {
-  onConversation: (transcript: string, reply: string, system: string) => void;
+  onConversation: (transcript: string, reply: string, system: string, language: string) => void;
   accentColor?: string;
 }
 
 export function AlwaysOnIndicator({ onConversation, accentColor = '#00F0FF' }: Props) {
   const [enabled, setEnabled] = useState(false);
-  const [log, setLog]         = useState<{ role: 'you' | 'edith'; text: string }[]>([]);
-  const [permDenied, setPermDenied] = useState(false);
+  const [log, setLog]                   = useState<{ role: 'you' | 'edith'; text: string }[]>([]);
+  const [permDenied, setPermDenied]     = useState(false);
+  const [detectedLanguage, setDetectedLanguage] = useState<string>('en');
 
   // ── Restore saved preference on mount (no auto-start if mic is just "granted") ──
   useEffect(() => {
@@ -36,15 +37,19 @@ export function AlwaysOnIndicator({ onConversation, accentColor = '#00F0FF' }: P
     if (enabled) localStorage.setItem('edith-always-on', 'true');
   }, [enabled]);
 
-  const handleConversation = useCallback((text: string, reply: string, system: string) => {
-    const cleanReply = parseAndExecute(reply);
-    setLog((prev) => [
-      ...prev.slice(-6),
-      { role: 'you',   text },
-      { role: 'edith', text: cleanReply.slice(0, 80) + (cleanReply.length > 80 ? '…' : '') },
-    ]);
-    onConversation(text, cleanReply, system);
-  }, [onConversation]);
+  const handleConversation = useCallback(
+    (text: string, reply: string, system: string, language: string) => {
+      const cleanReply = parseAndExecute(reply);
+      setDetectedLanguage(language);
+      setLog((prev) => [
+        ...prev.slice(-6),
+        { role: 'you',   text },
+        { role: 'edith', text: cleanReply.slice(0, 80) + (cleanReply.length > 80 ? '…' : '') },
+      ]);
+      onConversation(text, cleanReply, system, language);
+    }, 
+    [onConversation]
+  );
 
   const handleToggle = async () => {
     if (!enabled) {
@@ -61,7 +66,15 @@ export function AlwaysOnIndicator({ onConversation, accentColor = '#00F0FF' }: P
     }
   };
 
-  const { status, volume, error } = useAlwaysOn(handleConversation, enabled);
+  const { status, volume, error, detectedLanguage: hookLanguage } = useAlwaysOn(handleConversation, enabled);
+  
+  // Update detected language from hook
+  useEffect(() => {
+    if (hookLanguage && hookLanguage !== 'en') {
+      setDetectedLanguage(hookLanguage);
+    }
+  }, [hookLanguage]);
+
   const isListening = status === 'listening' || status === 'recording' || status === 'processing';
   const isSpeaking = status === 'speaking';
 
@@ -150,6 +163,19 @@ export function AlwaysOnIndicator({ onConversation, accentColor = '#00F0FF' }: P
           {label}
         </span>
       </motion.button>
+
+      {/* Language indicator */}
+      {enabled && detectedLanguage && detectedLanguage !== 'en' && (
+        <span style={{
+          fontFamily: 'JetBrains Mono',
+          fontSize: '8px',
+          color: 'rgba(255,255,255,0.3)',
+          letterSpacing: '0.05em'
+        }}>
+          LANG: {detectedLanguage.toUpperCase()}
+        </span>
+      )}
+
       {error && (
         <div style={{
           color: '#FF2A4B',

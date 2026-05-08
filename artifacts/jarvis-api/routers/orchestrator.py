@@ -136,9 +136,22 @@ async def chat_stream(req: ChatRequest):
     from agents.master_orchestrator import orchestrator
 
     async def generate():
+        full_reply = ""
         async for chunk in orchestrator.stream_response(req.message, req.session_id):
+            if chunk.get("token"):
+                full_reply += chunk["token"]
             yield f"data: {json.dumps(chunk)}\n\n"
             await asyncio.sleep(0)
+
+        if req.voice_response:
+            tts_lang = "hindi" if (req.language or "").lower() in {"hi", "hindi"} else "hinglish_or_english"
+            audio = await _tts(full_reply, lang=tts_lang)
+            payload = {
+                "done": True,
+                "audio_base64": base64.b64encode(audio).decode(),
+                "text": full_reply,
+            }
+            yield f"data: {json.dumps(payload)}\n\n"
 
     return StreamingResponse(
         generate(),

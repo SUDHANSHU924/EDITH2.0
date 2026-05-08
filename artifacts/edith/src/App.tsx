@@ -311,8 +311,8 @@ function CommanderPage() {
   const displayMessages =
     chatMessages.length === 0
        ? [{ id: 1, type: "edith" as const, content: BOOT_MESSAGE, isThinking: false, departmentColor: "#00F0FF", attachments: undefined, kind: undefined, screenshot_base64: undefined }]
-      : chatMessages.map((m) => ({
-          id: m.id ?? Date.now(),
+      : chatMessages.map((m, index) => ({
+          id: m.id ?? index,
           type: (m.role === "user" ? "commander" : "edith") as "commander" | "edith",
           content: m.content ?? "",
           isThinking: m.isStreaming,

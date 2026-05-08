@@ -13,7 +13,7 @@ interface TalkModeProps {
   accentColor?: string;
 }
 
-function playBase64Audio(b64: string) {
+function playBase64Audio(b64: string, fallbackText: string, speak: (text: string) => Promise<void>) {
   if (!b64) return;
   try {
     const bytes = atob(b64);
@@ -22,9 +22,15 @@ function playBase64Audio(b64: string) {
       buffer[index] = bytes.charCodeAt(index);
     }
     const audio = new Audio(URL.createObjectURL(new Blob([buffer], { type: "audio/mpeg" })));
-    audio.play().catch(() => undefined);
+    audio.play().catch(() => {
+      if (fallbackText.trim()) {
+        void speak(fallbackText);
+      }
+    });
   } catch {
-    return;
+    if (fallbackText.trim()) {
+      void speak(fallbackText);
+    }
   }
 }
 
@@ -68,7 +74,7 @@ export function TalkMode({ sessionId = "commander", accentColor = "#00F0FF" }: T
         setHistory([{ role: "edith", text: data.reply }]);
         setStatus("Boot greeting complete");
         if (data.audio_base64) {
-          playBase64Audio(data.audio_base64);
+          playBase64Audio(data.audio_base64, data.reply, speak);
         } else {
           void speak(data.reply);
         }
@@ -113,7 +119,7 @@ export function TalkMode({ sessionId = "commander", accentColor = "#00F0FF" }: T
       setStatus("Voice reply ready");
 
       if (data.audio_base64) {
-        playBase64Audio(data.audio_base64);
+        playBase64Audio(data.audio_base64, reply, speak);
       } else {
         void speak(reply);
       }

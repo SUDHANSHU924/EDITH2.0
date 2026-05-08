@@ -17,6 +17,20 @@ interface ChatStore {
 
 const createId = () => Date.now() + Math.floor(Math.random() * 1000);
 
+const normalizeMessages = (messages: Record<string, Message[]>) => {
+  const normalized: Record<string, Message[]> = {};
+
+  for (const [department, departmentMessages] of Object.entries(messages)) {
+    normalized[department] = departmentMessages.map((message) => ({
+      ...message,
+      id: message.id ?? createId(),
+      isStreaming: false,
+    }));
+  }
+
+  return normalized;
+};
+
 const sanitizeAttachments = (attachments?: Attachment[]) =>
   attachments?.map((attachment) => ({
     id: attachment.id,
@@ -125,18 +139,7 @@ export const useChatStore = create<ChatStore>()(
           state.messages = {};
           return;
         }
-        const cleanedMessages: Record<string, Message[]> = {};
-        for (const [dept, msgs] of Object.entries(state.messages)) {
-          if (Array.isArray(msgs)) {
-            cleanedMessages[dept] = msgs.map((message) => ({
-              ...message,
-              isStreaming: false,
-            }));
-          } else {
-            cleanedMessages[dept] = [];
-          }
-        }
-        state.messages = cleanedMessages;
+        state.messages = normalizeMessages(state.messages);
       },
     }
   )

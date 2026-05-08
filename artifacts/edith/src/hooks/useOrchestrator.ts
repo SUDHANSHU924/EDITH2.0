@@ -28,6 +28,35 @@ export type OrchestratorStatus = {
   systems_locked: number;
 };
 
+function playBase64Audio(b64: string, fallbackText = "") {
+  if (!b64) return false;
+
+  try {
+    const bytes = atob(b64);
+    const buffer = new Uint8Array(bytes.length);
+    for (let index = 0; index < bytes.length; index += 1) {
+      buffer[index] = bytes.charCodeAt(index);
+    }
+
+    const audio = new Audio(URL.createObjectURL(new Blob([buffer], { type: "audio/mpeg" })));
+    audio.play().catch(() => speakFallback(fallbackText));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function speakFallback(text: string) {
+  if (!text || !window.speechSynthesis) return;
+
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  utterance.pitch = 0.95;
+  utterance.volume = 1;
+  window.speechSynthesis.speak(utterance);
+}
+
 export function useOrchestrator(sessionId: string, department: string) {
   const [isConnected, setIsConnected] = useState(false);
   const [activeSystem, setActiveSystem] = useState("core");
@@ -155,6 +184,14 @@ export function useOrchestrator(sessionId: string, department: string) {
                 } else {
                   updateMessage(msgId, { isStreaming: false }, department);
                 }
+
+                if (voiceResponse) {
+                  const audio = chunk.audio_base64 ?? chunk.audio ?? "";
+                  const fallbackText = (chunk.text ?? chunk.full_response ?? "").trim();
+                  if (!playBase64Audio(audio, fallbackText)) {
+                    speakFallback(fallbackText);
+                  }
+                }
                 setThinking(false);
                 fetchStatus();
               }
@@ -195,6 +232,11 @@ export function useOrchestrator(sessionId: string, department: string) {
               updateData.action = data.action;
             }
             updateMessage(msgId, updateData, department);
+            if (voiceResponse) {
+              if (!playBase64Audio(data.audio_base64 ?? data.audio ?? "", rawText)) {
+                speakFallback(rawText);
+              }
+            }
             if (data.routing) setLastRouting(data.routing);
             if (data.system) setActiveSystem(data.system);
           } else {
