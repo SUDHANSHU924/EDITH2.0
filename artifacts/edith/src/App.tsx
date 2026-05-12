@@ -23,6 +23,11 @@ import {
 } from "@/departments";
 import type { Attachment } from "@/types/message.types";
 import Dashboard from "@/pages/Dashboard";
+import LandingPage from "@/pages/Landing";
+import FeaturesPage from "@/pages/Features";
+import DownloadPage from "@/pages/Download";
+import PricingPage from "@/pages/Pricing";
+import DocsPage from "@/pages/Docs";
 
 const queryClient = new QueryClient();
 
@@ -54,171 +59,6 @@ const AUTONOMY_STAGES = [
   { stage: 3, label: "PROACTIVE", desc: "EDITH anticipates and suggests actions" },
   { stage: 4, label: "MANAGED", desc: "EDITH handles routine, escalates decisions" },
 ];
-
-function LandingPage() {
-  const [, navigate] = useLocation();
-  const [booting, setBooting] = useState(false);
-
-  const handleInit = () => {
-    setBooting(true);
-    setTimeout(() => navigate("/commander"), 1200);
-  };
-
-  return (
-    <div
-      style={{
-        background: "#050505",
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        fontFamily: "JetBrains Mono, monospace",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <BackgroundGrid />
-
-      <div
-        style={{
-          position: "absolute",
-          width: 400,
-          height: 400,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(0,240,255,0.06) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        style={{ textAlign: "center", zIndex: 10 }}
-      >
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          style={{
-            color: "rgba(0,240,255,0.4)",
-            fontSize: "10px",
-            letterSpacing: "0.4em",
-            marginBottom: "24px",
-          }}
-        >
-          STARK INDUSTRIES — RESTRICTED
-        </motion.div>
-
-        <motion.h1
-          style={{
-            color: "#00F0FF",
-            fontSize: "56px",
-            letterSpacing: "0.3em",
-            fontWeight: 300,
-            textShadow: "0 0 40px rgba(0,240,255,0.4)",
-            marginBottom: "8px",
-          }}
-          animate={{
-            textShadow: [
-              "0 0 30px rgba(0,240,255,0.3)",
-              "0 0 50px rgba(0,240,255,0.6)",
-              "0 0 30px rgba(0,240,255,0.3)",
-            ],
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          E.D.I.T.H.
-        </motion.h1>
-
-        <p style={{ color: "rgba(255,255,255,0.3)", marginBottom: "4px", fontSize: "11px", letterSpacing: "0.2em" }}>
-          AUTONOMOUS INTELLIGENCE SYSTEM
-        </p>
-        <p style={{ color: "rgba(255,255,255,0.15)", marginBottom: "48px", fontSize: "10px", letterSpacing: "0.15em" }}>
-          VERSION 2.0 · OS CONTROL AGENT ONLINE
-        </p>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          style={{ display: "flex", gap: "24px", justifyContent: "center", marginBottom: "48px" }}
-        >
-          {[
-            { label: "NEURAL NET", status: "ONLINE" },
-            { label: "OS CONTROL", status: "ARMED" },
-            { label: "CLEARANCE", status: "ALPHA" },
-          ].map((item) => (
-            <div key={item.label} style={{ textAlign: "center" }}>
-              <motion.div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#00F0FF",
-                  margin: "0 auto 6px",
-                }}
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.15em" }}>{item.label}</div>
-              <div style={{ fontSize: "9px", color: "rgba(0,240,255,0.6)", letterSpacing: "0.1em" }}>{item.status}</div>
-            </div>
-          ))}
-        </motion.div>
-
-        <motion.button
-          onClick={handleInit}
-          disabled={booting}
-          style={{
-            border: "1px solid #00F0FF",
-            background: booting ? "rgba(0,240,255,0.1)" : "transparent",
-            color: "#00F0FF",
-            padding: "14px 48px",
-            fontFamily: "JetBrains Mono, monospace",
-            fontSize: "11px",
-            letterSpacing: "0.25em",
-            cursor: booting ? "default" : "pointer",
-            position: "relative",
-            overflow: "hidden",
-          }}
-          whileHover={{ background: "rgba(0,240,255,0.08)", boxShadow: "0 0 20px rgba(0,240,255,0.2)" }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {booting ? (
-            <motion.span animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 0.8, repeat: Infinity }}>
-              INITIALIZING...
-            </motion.span>
-          ) : (
-            "INITIALIZE SYSTEM"
-          )}
-        </motion.button>
-      </motion.div>
-
-      {[
-        { top: 24, left: 24 },
-        { top: 24, right: 24 },
-        { bottom: 24, left: 24 },
-        { bottom: 24, right: 24 },
-      ].map((pos, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            width: 20,
-            height: 20,
-            borderTop: i < 2 ? "1px solid rgba(0,240,255,0.25)" : undefined,
-            borderBottom: i >= 2 ? "1px solid rgba(0,240,255,0.25)" : undefined,
-            borderLeft: i % 2 === 0 ? "1px solid rgba(0,240,255,0.25)" : undefined,
-            borderRight: i % 2 === 1 ? "1px solid rgba(0,240,255,0.25)" : undefined,
-            ...pos,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 function CommanderPage() {
   const [, navigate] = useLocation();
@@ -388,8 +228,27 @@ function CommanderPage() {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#050505", display: "flex", flexDirection: "column" }}>
+    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#050505", display: "flex", flexDirection: "column", position: "relative" }}>
       <BackgroundGrid />
+
+      <div
+        style={{
+          position: "absolute",
+          top: 44,
+          right: 16,
+          zIndex: 40,
+          padding: "6px 10px",
+          borderRadius: 10,
+          border: "1px solid rgba(0,240,255,0.35)",
+          background: "rgba(0,240,255,0.08)",
+          fontFamily: "JetBrains Mono, monospace",
+          fontSize: "9px",
+          letterSpacing: "0.2em",
+          color: "#00F0FF",
+        }}
+      >
+        BETA DEMO
+      </div>
 
       <HudStatusBar
         securityMode={securityMode}
@@ -757,6 +616,10 @@ function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
+      <Route path="/features" component={FeaturesPage} />
+      <Route path="/download" component={DownloadPage} />
+      <Route path="/pricing" component={PricingPage} />
+      <Route path="/docs" component={DocsPage} />
       <Route path="/commander" component={CommanderPage} />
       <Route path="/dashboard" component={Dashboard} />
     </Switch>

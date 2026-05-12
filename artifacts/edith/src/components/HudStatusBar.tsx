@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'wouter';
 import { DEPARTMENTS, type DepartmentId } from '../departments';
 
 interface HudStatusBarProps {
@@ -9,9 +10,25 @@ interface HudStatusBarProps {
   accentColor: string;
   wsConnected?: boolean;
   activeSystem?: string;
+  variant?: 'command' | 'marketing';
+  navItems?: Array<{ label: string; href: string }>;
+  ctaLabel?: string;
+  ctaHref?: string;
 }
 
-export function HudStatusBar({ securityMode, activeDepartment, autonomyStage, accentColor, wsConnected = false, activeSystem = 'core' }: HudStatusBarProps) {
+export function HudStatusBar({
+  securityMode,
+  activeDepartment,
+  autonomyStage,
+  accentColor,
+  wsConnected = false,
+  activeSystem = 'core',
+  variant = 'command',
+  navItems,
+  ctaLabel = 'Download Now',
+  ctaHref = '/download',
+}: HudStatusBarProps) {
+  const [location] = useLocation();
   const [time, setTime] = useState('');
   const [ms, setMs] = useState('000');
   const [ping, setPing] = useState(34);
@@ -56,6 +73,117 @@ export function HudStatusBar({ securityMode, activeDepartment, autonomyStage, ac
   };
 
   const pingColor = ping < 40 ? '#2FD4A3' : ping < 80 ? '#F5A623' : '#FF2A4B';
+
+  const navigation = navItems ?? [
+    { label: 'Home', href: '/' },
+    { label: 'Features', href: '/features' },
+    { label: 'Download', href: '/download' },
+    { label: 'Pricing', href: '/pricing' },
+    { label: 'Docs', href: '/docs' },
+  ];
+
+  if (variant === 'marketing') {
+    return (
+      <div
+        className="top-0 left-0 right-0 z-[70] flex items-center"
+        style={{
+          position: 'sticky',
+          width: '100%',
+          height: 64,
+          background: 'rgba(4,6,10,0.92)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          backdropFilter: 'blur(16px)',
+        }}
+      >
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: 1,
+            background: `linear-gradient(90deg, transparent, ${accentColor}80, transparent)`,
+            width: '30%',
+          }}
+          animate={{ x: ['-30%', '130%'] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 6 }}
+        />
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            width: '100%',
+            padding: '0 24px',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: 14,
+              color: '#00F0FF',
+              letterSpacing: '0.18em',
+              textDecoration: 'none',
+            }}
+          >
+            E.D.I.T.H
+          </Link>
+
+          <nav
+            style={{
+              display: 'flex',
+              gap: 14,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+            }}
+          >
+            {navigation.map((item) => {
+              const active = location === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: 10,
+                    letterSpacing: '0.2em',
+                    color: active ? '#00F0FF' : 'rgba(255,255,255,0.6)',
+                    textDecoration: 'none',
+                    padding: '6px 8px',
+                    borderRadius: 8,
+                    border: active ? '1px solid rgba(0,240,255,0.35)' : '1px solid transparent',
+                    background: active ? 'rgba(0,240,255,0.12)' : 'transparent',
+                  }}
+                >
+                  {item.label.toUpperCase()}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <Link
+            href={ctaHref}
+            style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.2em',
+              color: '#00F0FF',
+              textDecoration: 'none',
+              padding: '10px 16px',
+              borderRadius: 12,
+              border: '1px solid rgba(0,240,255,0.5)',
+              background: 'rgba(0,240,255,0.12)',
+              boxShadow: '0 0 14px rgba(0,240,255,0.2)',
+            }}
+          >
+            {ctaLabel.toUpperCase()}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

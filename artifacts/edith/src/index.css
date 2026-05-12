@@ -6,9 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 html, body, #root {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
-  overflow: hidden;
   background: #050505;
 }
 
@@ -17,6 +16,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: white;
+  overflow-x: hidden;
 }
 
 * {
