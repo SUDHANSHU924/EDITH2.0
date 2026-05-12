@@ -38,7 +38,7 @@ export function Footer() {
                 lineHeight: 1.7,
               }}
             >
-              WARGO INDUSTRIES // like Stark Industries
+              WARGO INDUSTRIES
             </div>
             <div
               style={{

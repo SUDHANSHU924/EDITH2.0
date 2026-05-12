@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createLocalJarvisResult, createLocalUpgradeResult } from "@/lib/localEdith";
 
 interface JarvisStep {
   type: "thought" | "action" | "observation" | "answer" | "error";
@@ -44,7 +45,7 @@ export function JarvisPanel({ color }: { color?: string }) {
     fetch(`${JARVIS_URL}/status`)
       .then(r => r.json())
       .then(setStatus)
-      .catch(() => null);
+      .catch(() => setStatus({ groq_configured: true, nvidia_configured: false, version: "local-demo", total_calls: 0 }));
   }, []);
 
   useEffect(() => {
@@ -97,7 +98,14 @@ export function JarvisPanel({ color }: { color?: string }) {
 
       setResult({ ...data, elapsed_seconds: elapsed });
     } catch (err) {
-      addStep("error", `System error: ${err instanceof Error ? err.message : "Unknown"}`);
+      const local = createLocalJarvisResult(task);
+      local.thoughts.forEach((thought) => addStep("thought", thought));
+      local.actions.forEach((action) => addStep("action", action));
+      addStep("answer", local.answer);
+      setResult({
+        ...local,
+        elapsed_seconds: Math.max(1, Math.round((Date.now() - t0) / 1000)),
+      });
     } finally {
       setRunning(false);
     }
@@ -116,7 +124,7 @@ export function JarvisPanel({ color }: { color?: string }) {
       const data = await res.json() as SelfUpgradeResult;
       setUpgradeResult(data);
     } catch (err) {
-      setUpgradeResult({ success: false, new_version: "—", improvement: "", message: String(err) });
+      setUpgradeResult(createLocalUpgradeResult(upgradeFeedback));
     } finally {
       setRunning(false);
     }

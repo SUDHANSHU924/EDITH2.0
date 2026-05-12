@@ -9,10 +9,50 @@ export function useVoice() {
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
   const currentAudio = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const transcriptRef = useRef("");
+
+  const getSpeechRecognition = () => {
+    const globalAny = window as any;
+    return globalAny.SpeechRecognition || globalAny.webkitSpeechRecognition || null;
+  };
 
   const startRecording = useCallback(async () => {
     setError(null);
     setTranscript("");
+    transcriptRef.current = "";
+
+    const SpeechRecognitionCtor = getSpeechRecognition();
+    if (SpeechRecognitionCtor) {
+      try {
+        const recognition = new SpeechRecognitionCtor();
+        recognition.lang = "en-US";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.onresult = (event: any) => {
+          const result = event.results?.[0]?.[0]?.transcript ?? "";
+          transcriptRef.current = result;
+          setTranscript(result);
+        };
+        recognition.onerror = () => {
+          setError("mic access denied");
+          setIsRecording(false);
+          setIsTranscribing(false);
+        };
+        recognition.onend = () => {
+          setIsRecording(false);
+          setIsTranscribing(false);
+        };
+        recognitionRef.current = recognition;
+        recognition.start();
+        setIsRecording(true);
+        return;
+      } catch {
+        recognitionRef.current = null;
+      }
+    }
+
     if (!navigator?.mediaDevices?.getUserMedia) {
       setError("mic unsupported");
       return;
@@ -45,6 +85,27 @@ export function useVoice() {
 
   const stopRecording = useCallback((): Promise<string> => {
     return new Promise((resolve) => {
+      if (recognitionRef.current) {
+        setIsTranscribing(true);
+        const recognition = recognitionRef.current;
+        recognition.onend = () => {
+          setIsRecording(false);
+          setIsTranscribing(false);
+          const text = transcriptRef.current.trim();
+          recognitionRef.current = null;
+          resolve(text);
+        };
+        try {
+          recognition.stop();
+        } catch {
+          recognitionRef.current = null;
+          setIsRecording(false);
+          setIsTranscribing(false);
+          resolve(transcriptRef.current.trim());
+        }
+        return;
+      }
+
       if (!mediaRecorder.current) { resolve(""); return; }
 
       mediaRecorder.current.onstop = async () => {
@@ -107,7 +168,10 @@ export function useVoice() {
     setIsSpeaking(false);
   }, []);
 
-  const clearTranscript = useCallback(() => setTranscript(""), []);
+  const clearTranscript = useCallback(() => {
+    transcriptRef.current = "";
+    setTranscript("");
+  }, []);
 
   return {
     isRecording,

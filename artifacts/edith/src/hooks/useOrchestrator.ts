@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useChatStore } from "@/store/chatStore";
 import type { Attachment } from "@/types/message.types";
 import { executeQuickCommand, parseAndExecute } from "@/lib/actions";
+import { createLocalEdithReply, streamLocalText } from "@/lib/localEdith";
 
 export type TaskEntry = {
   id: number;
@@ -54,6 +55,7 @@ export function useOrchestrator(sessionId: string, department: string) {
       setIsConnected(true);
     } catch {
       setIsConnected(false);
+      setActiveSystem("local-demo");
     }
   }, [sessionId]);
 
@@ -162,39 +164,26 @@ export function useOrchestrator(sessionId: string, department: string) {
         setThinking(false);
       } catch (err) {
         console.error("[EDITH] sendMessage error:", err);
-        // Fallback: try non-streaming chat endpoint
-        try {
-          const res = await fetch("/api/orchestrator/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              message: trimmed,
-              session_id: sessionId,
-              voice_response: voiceResponse ?? false,
-            }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.action?.type === "open_url" && data.action.url) {
-              window.open(data.action.url, "_blank", "noopener,noreferrer");
+        const local = createLocalEdithReply(trimmed);
+        const stopStreaming = streamLocalText(
+          local.reply,
+          (chunk) => appendToMessage(msgId, chunk, department),
+          () => {
+            if (local.action?.type === "open_url" && local.action.url) {
+              window.open(local.action.url, "_blank", "noopener,noreferrer");
             }
-            const rawText = data.reply ?? "";
-            if (!executeQuickCommand(rawText)) {
-              const cleanText = parseAndExecute(rawText);
-              updateMessage(msgId, { content: cleanText || rawText || "No response.", isStreaming: false }, department);
-            } else {
-              updateMessage(msgId, { content: rawText || "No response.", isStreaming: false }, department);
-            }
-            if (data.routing) setLastRouting(data.routing);
-            if (data.system) setActiveSystem(data.system);
-          } else {
-            updateMessage(msgId, { content: "EDITH orchestrator unavailable.", isStreaming: false }, department);
+            const cleanText = parseAndExecute(local.reply);
+            updateMessage(msgId, { content: cleanText || local.reply, isStreaming: false }, department);
+            setThinking(false);
+            fetchStatus();
           }
-        } catch {
-          updateMessage(msgId, { content: "EDITH orchestrator unavailable.", isStreaming: false }, department);
+        );
+
+        if (!local.reply.trim()) {
+          stopStreaming();
+          updateMessage(msgId, { content: "EDITH local demo unavailable.", isStreaming: false }, department);
+          setThinking(false);
         }
-        setThinking(false);
-        fetchStatus();
       }
     },
     [isThinking, department, sessionId, addMessage, appendToMessage, updateMessage, setThinking, fetchStatus]

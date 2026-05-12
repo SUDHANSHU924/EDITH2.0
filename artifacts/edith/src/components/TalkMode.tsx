@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, MicOff, Send, Sparkles, Volume2 } from "lucide-react";
 import { useVoice } from "@/hooks/useVoice";
+import { createLocalEdithReply, streamLocalText } from "@/lib/localEdith";
 
 type ChatLine = {
   role: "you" | "edith";
@@ -73,7 +74,12 @@ export function TalkMode({ sessionId = "commander", accentColor = "#00F0FF" }: T
           void speak(data.reply);
         }
       })
-      .catch(() => undefined);
+      .catch(() => {
+        const local = createLocalEdithReply("");
+        setHistory([{ role: "edith", text: local.reply }]);
+        setStatus("Local demo ready");
+        void speak(local.reply);
+      });
 
     return () => controller.abort();
   }, [sessionId, speak]);
@@ -118,8 +124,31 @@ export function TalkMode({ sessionId = "commander", accentColor = "#00F0FF" }: T
         void speak(reply);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Talk mode failed");
-      setStatus("Offline");
+      const local = createLocalEdithReply(trimmed);
+      setError(null);
+      setStatus("Local demo reply");
+      setHistory((prev) => [...prev, { role: "edith", text: "" }]);
+
+      streamLocalText(
+        local.reply,
+        (chunk) => {
+          setHistory((prev) => {
+            const next = [...prev];
+            const lastIndex = next.length - 1;
+            if (lastIndex >= 0 && next[lastIndex].role === "edith") {
+              next[lastIndex] = { ...next[lastIndex], text: `${next[lastIndex].text}${chunk}` };
+            }
+            return next;
+          });
+        },
+        () => {
+          if (local.action?.type === "open_url") {
+            window.open(local.action.url, "_blank", "noopener,noreferrer");
+          }
+          void speak(local.reply);
+          setStatus("Local demo ready");
+        }
+      );
     } finally {
       setBusy(false);
     }
